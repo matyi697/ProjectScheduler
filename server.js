@@ -222,6 +222,47 @@ app.post('/statusz/:id', async (req, res) => {
     }
 });
 
+// ==========================================
+// PARCELLÁZÁS / MUNKA KIOSZTÁS OLDAL
+// ==========================================
+app.get('/parcellazas', async (req, res) => {
+    if (!req.session.userId) return res.redirect('/'); 
+
+    try {
+        // 1. Csomagok lekérése
+        const resultCsomagok = await poolUtemterv.query(`
+            SELECT id, job_year, job_number, company_name, 
+                   TO_CHAR(arrival_date, 'YYYY-MM-DD') as formatted_arrival, 
+                   TO_CHAR(due_date, 'YYYY-MM-DD') as formatted_due,
+                   shipping_country, shipping_zip, shipping_city, shipping_street,
+                   billing_country, billing_zip, billing_city, billing_street
+            FROM main_job 
+            ORDER BY id DESC
+        `);
+        
+        // 2. Egyedi Gyártók lekérése az autocomplete-hez
+        const resultGyartok = await poolUtemterv.query(`
+            SELECT DISTINCT gyarto FROM pipetta_torzs WHERE gyarto IS NOT NULL ORDER BY gyarto
+        `);
+        
+        // 3. Egyedi Típusok lekérése az autocomplete-hez
+        const resultTipusok = await poolUtemterv.query(`
+            SELECT DISTINCT tipus FROM pipetta_torzs WHERE tipus IS NOT NULL ORDER BY tipus
+        `);
+
+        // Adatok átadása az EJS oldalnak
+        res.render('parcellazas', { 
+            csomagok: resultCsomagok.rows,
+            gyartok: resultGyartok.rows.map(r => r.gyarto),
+            tipusok: resultTipusok.rows.map(r => r.tipus),
+            username: req.session.username
+        });
+
+    } catch (error) {
+        console.error("Hiba a parcellázás oldal betöltésekor:", error);
+        res.status(500).send("Belső szerverhiba történt.");
+    }
+});
 
 // =========================================================================
 // 5. SZERVER INDÍTÁSA
