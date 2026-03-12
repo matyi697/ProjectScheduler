@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Új csomag felvétele</title>
+    <style>
+        /* Alap betűtípus és háttér */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
+        
+        /* Felső navigáció */
+        .navbar { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar h1 { margin: 0; font-size: 22px; }
+        
+        /* Középső doboz */
+        .container { max-width: 900px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #f4f6f9; padding-bottom: 15px; }
+        
+        /* Űrlap elrendezés (Grid) */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
+        input[type="text"], input[type="date"], input[type="number"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        textarea { resize: vertical; height: 85px; }
+        input:focus, textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 5px rgba(0,123,255,0.2); }
+
+        /* Egyéni csomagszám kiemelése */
+        .custom-id-box { background: #e9ecef; padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 25px; border: 1px dashed #adb5bd; }
+        .custom-id-box label { color: #d32f2f; font-size: 15px; }
+        .custom-id-box input { width: 250px; text-align: center; font-weight: bold; font-size: 16px; margin-top: 5px; }
+
+        /* Számlázási és Szállítási dobozok */
+        .address-box { border: 1px solid #e2e8f0; padding: 20px; border-radius: 6px; background: #fafbfc; position: relative; }
+        .address-box h4 { margin-top: 0; margin-bottom: 15px; color: #2c3e50; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+        .flex-row { display: flex; gap: 10px; }
+
+        /* Számláló (Counter) */
+        .counter-wrapper { display: flex; align-items: center; }
+        .counter-btn { background: #007bff; color: white; border: none; padding: 10px 15px; font-size: 18px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .counter-btn:hover { background: #0056b3; }
+        .counter-input { width: 70px !important; text-align: center; font-size: 18px; font-weight: bold; margin: 0 5px; }
+        .counter-input::-webkit-outer-spin-button, .counter-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* Gombok */
+        .actions { margin-top: 35px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #f4f6f9; padding-top: 20px; }
+        .btn-copy { background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; position: absolute; right: 20px; top: 18px; transition: 0.2s; }
+        .btn-copy:hover { background: #5a6268; }
+        .btn-save { background: #28a745; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-save:hover { background: #218838; }
+        .btn-cancel { background: #dc3545; color: white; text-decoration: none; padding: 12px 30px; font-size: 16px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-cancel:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>🔬 Labor Irányítópult</h1>
+        <div>
+            <span style="margin-right: 15px;">Bejelentkezve: <strong><%= username %></strong></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Új csomag felvétele</h2>
+
+        <form action="/uj-munka" method="POST">
+            
+            <div class="custom-id-box">
+                <label>Egyéni Csomagszám (Hagyd üresen az automatikushoz!)</label>
+                <input type="text" name="custom_job_id" placeholder="pl: 2026/15">
+            </div>
+
+            <div class="form-grid">
+                <div class="column">
+                    <div class="form-group">
+                        <label>Feladó cég: *</label>
+                        <input type="text" name="company_name" required placeholder="Kliens neve...">
+                    </div>
+                    <div class="form-group">
+                        <label>Kapcsolattartó:</label>
+                        <input type="text" name="contact_name" placeholder="Név, telefonszám...">
+                    </div>
+                    <div class="form-group">
+                        <label>Futár adatai:</label>
+                        <textarea name="courier_info" placeholder="Pl: GLS csomagszám, megjegyzések a szállításhoz..."></textarea>
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="form-group">
+                        <label>Átvétel dátuma: *</label>
+                        <input type="date" name="arrival_date" id="arrival_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Határidő:</label>
+                        <input type="date" name="due_date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Műszerek száma (Al-munkák):</label>
+                        <div class="counter-wrapper">
+                            <button type="button" class="counter-btn" onclick="updateCounter(-1)">-</button>
+                            <input type="number" id="item_count" name="item_count" class="counter-input" value="1" min="1">
+                            <button type="button" class="counter-btn" onclick="updateCounter(1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Megjegyzés a munkához:</label>
+                        <input type="text" name="notes" placeholder="Rövid belső infó...">
+                    </div>
+                </div>
+                
+                <div class="address-box">
+                    <h4>📦 Szállítási cím</h4>
+                    <div class="form-group">
+                        <input type="text" id="s_country" name="shipping_country" placeholder="Ország" value="Magyarország">
+                    </div>
+                    <div class="form-group flex-row">
+                        <input type="text" id="s_zip" name="shipping_zip" placeholder="Ir.sz." style="width: 30%;">
+                        <input type="text" id="s_city" name="shipping_city" placeholder="Település" style="width: 70%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" id="s_street" name="shipping_street" placeholder="Utca, házszám, emelet...">
+                    </div>
+                </div>
+                
+                <div class="address-box">
+                    <h4>💳 Számlázási cím</h4>
+                    <button type="button" class="btn-copy" onclick="copyAddress()">Másolás ➔</button>
+                    
+                    <div class="form-group">
+                        <input type="text" id="b_country" name="billing_country" placeholder="Ország" value="Magyarország">
+                    </div>
+                    <div class="form-group flex-row">
+                        <input type="text" id="b_zip" name="billing_zip" placeholder="Ir.sz." style="width: 30%;">
+                        <input type="text" id="b_city" name="billing_city" placeholder="Település" style="width: 70%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" id="b_street" name="billing_street" placeholder="Utca, házszám, emelet...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <a href="/dashboard" class="btn-cancel">✖ Mégsem</a>
+                <button type="submit" class="btn-save">✔ Csomag Mentése</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 1. Számláló (Counter) logika
+        function updateCounter(change) {
+            const input = document.getElementById('item_count');
+            let currentValue = parseInt(input.value) || 1;
+            let newValue = currentValue + change;
+            if (newValue < 1) newValue = 1; // Ne lehessen 0 vagy negatív
+            input.value = newValue;
+        }
+
+        // 2. Cím másolása funkció
+        function copyAddress() {
+            document.getElementById('b_country').value = document.getElementById('s_country').value;
+            document.getElementById('b_zip').value = document.getElementById('s_zip').value;
+            document.getElementById('b_city').value = document.getElementById('s_city').value;
+            document.getElementById('b_street').value = document.getElementById('s_street').value;
+        }
+
+        // 3. Mai dátum beállítása alapértelmezetten az Átvétel dátumához
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('arrival_date').value = today;
+        }
+    </script>
+
+</body>
+</html>

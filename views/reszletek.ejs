@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Csomag Részletei</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 20px; }
+        .card { background: white; max-width: 800px; margin: 0 auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { color: #007bff; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .box { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; }
+        .box h3 { margin-top: 0; color: #495057; font-size: 16px; margin-bottom: 10px; }
+        p { margin: 5px 0; color: #333; }
+        .btn-back { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Csomag Azonosító: <%= csomag.azonosito %></h2>
+        
+        <div class="grid">
+            <div class="box">
+                <h3>🏢 Ügyfél & Infók</h3>
+                <p><strong>Cég:</strong> <%= csomag.company_name %></p>
+                <p><strong>Kapcsolattartó:</strong> <%= csomag.contact_name %></p>
+                <p><strong>Munkák száma:</strong> <%= csomag.item_count %> db</p>
+                <p><strong>Érkezés:</strong> <%= csomag.erkezes %></p>
+                <p><strong>Határidő:</strong> <%= csomag.hatarido %></p>
+            </div>
+            <div class="box">
+                <h3>🚚 Futár & Megjegyzés</h3>
+                <p><strong>Futár info:</strong><br> <%= csomag.courier_info || '-' %></p>
+                <br>
+                <p><strong>Megjegyzés:</strong><br> <%= csomag.notes || '-' %></p>
+            </div>
+            <div class="box">
+                <h3>📦 Szállítási Cím</h3>
+                <p><%= csomag.shipping_country %></p>
+                <p><%= csomag.shipping_zip %> <%= csomag.shipping_city %></p>
+                <p><%= csomag.shipping_street %></p>
+            </div>
+            <div class="box">
+                <h3>💳 Számlázási Cím</h3>
+                <p><%= csomag.billing_country %></p>
+                <p><%= csomag.billing_zip %> <%= csomag.billing_city %></p>
+                <p><%= csomag.billing_street %></p>
+            </div>
+        </div>
+        
+        <a href="/dashboard" class="btn-back">⬅ Vissza a Dashboardra</a>
+    </div>
+</body>
+</html>
