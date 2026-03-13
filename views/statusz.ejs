@@ -2,100 +2,149 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Munka Státusza</title>
+    <title>Pipetták Státusza - <%= munka.azonosito %></title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
-        .navbar { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .navbar h1 { margin: 0; font-size: 22px; }
-        .nav-right { display: flex; align-items: center; gap: 20px; }
-        .logout-btn { background: #e74c3c; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        .navbar { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         
-        .container { max-width: 600px; margin: 40px auto; padding: 0 20px; }
-        .card { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        
-        .header-info { border-bottom: 2px solid #f4f6f9; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }
-        .header-info h2 { color: #007bff; margin: 0 0 10px 0; font-size: 28px; }
-        .header-info p { color: #555; margin: 0; font-size: 18px; font-weight: bold; }
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header-info { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .header-info h2 { margin: 0; color: #007bff; }
 
-        /* A modern CSÚSZKÁS (Toggle) kapcsolók stílusa */
-        .status-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
-        .status-row:last-child { border-bottom: none; }
-        .status-label { font-size: 18px; font-weight: bold; color: #333; }
+        /* TÁBLÁZAT STÍLUS */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; color: #666; font-size: 13px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        tr:hover { background: #fcfcfc; }
 
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .pipetta-info { font-weight: bold; font-size: 14px; }
+        .pipetta-sub { font-size: 12px; color: #888; display: block; }
+
+        /* TOGGLE SWITCH (A te stílusod alapján) */
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        
-        /* Amikor be van kapcsolva (Checked) */
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #28a745; }
-        input:checked + .slider:before { transform: translateX(26px); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
-        .actions { margin-top: 30px; display: flex; justify-content: space-between; }
-        .btn-cancel { background: #6c757d; color: white; text-decoration: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; font-size: 16px; }
-        .btn-save { background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .btn-save:hover { background: #0056b3; }
+        /* Ikonok a fejléchez */
+        .col-icon { font-size: 18px; display: block; margin-bottom: 5px; }
+
+        .actions { margin-top: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-cancel { color: #666; text-decoration: none; font-weight: bold; }
+        .btn-save { background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
         <h1>🔬 Labor Irányítópult</h1>
-        <div class="nav-right">
-            <span>Bejelentkezve: <strong><%= username %></strong></span>
-            <a href="/logout" class="logout-btn">Kijelentkezés</a>
-        </div>
+        <a href="/logout" style="color:white; text-decoration:none;">Kijelentkezés</a>
     </div>
 
     <div class="container">
         <div class="card">
             <div class="header-info">
-                <h2><%= munka.azonosito %></h2>
-                <p>Cég: <%= munka.company_name %></p>
+                <h2>Munka: <%= munka.azonosito %></h2>
+                <p>Ügyfél: <strong><%= munka.company_name %></strong></p>
             </div>
 
-            <form action="/statusz/<%= munka.munka_id %>" method="POST">
-                
-                <div class="status-row">
-                    <span class="status-label">💧 Tisztítás</span>
-                    <label class="switch">
-                        <input type="checkbox" name="is_cleaned" <%= munka.is_cleaned ? 'checked' : '' %>>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pipetta / Matrica</th>
+                        <th style="text-align:center;"><span class="col-icon">💧</span>Tisztítás</th>
+                        <th style="text-align:center;"><span class="col-icon">🛡️</span>Karbant.</th>
+                        <th style="text-align:center;"><span class="col-icon">🔧</span>Szerviz</th>
+                        <th style="text-align:center;"><span class="col-icon">🎯</span>Kalibr.</th>
+                        <th style="text-align:center;"><span class="col-icon">📦</span>Kiküldve</th>
+                    </tr>
+                </thead>
+                <tbody id="pipetta-sorok">
+                    <% pipettak.forEach(p => { %>
+                    <tr data-id="<%= p.id %>">
+                        <td>
+                            <span class="pipetta-info"><%= p.matrica_szam %></span>
+                            <span class="pipetta-sub"><%= p.gyarto %> <%= p.tipus %> (<%= p.terfogat %>)</span>
+                        </td>
+                        <td align="center">
+                            <label class="switch">
+                                <input type="checkbox" class="cb-cleaned" <%= p.is_cleaned ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td align="center">
+                            <label class="switch">
+                                <input type="checkbox" class="cb-maintained" <%= p.is_maintained ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td align="center">
+                            <label class="switch">
+                                <input type="checkbox" class="cb-serviced" <%= p.is_serviced ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td align="center">
+                            <label class="switch">
+                                <input type="checkbox" class="cb-calibrated" <%= p.is_calibrated ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td align="center">
+                            <label class="switch">
+                                <input type="checkbox" class="cb-sent" <%= p.is_sent ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
 
-                <div class="status-row">
-                    <span class="status-label">🔧 Szerviz</span>
-                    <label class="switch">
-                        <input type="checkbox" name="is_serviced" <%= munka.is_serviced ? 'checked' : '' %>>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="status-row">
-                    <span class="status-label">🎯 Kalibrálás</span>
-                    <label class="switch">
-                        <input type="checkbox" name="is_calibrated" <%= munka.is_calibrated ? 'checked' : '' %>>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="status-row">
-                    <span class="status-label">📦 Kiküldve</span>
-                    <label class="switch">
-                        <input type="checkbox" name="is_sent" <%= munka.is_sent ? 'checked' : '' %>>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="actions">
-                    <a href="/dashboard" class="btn-cancel">Mégsem</a>
-                    <button type="submit" class="btn-save">✔ Státuszok Mentése</button>
-                </div>
-            </form>
-            
+            <div class="actions">
+                <a href="/dashboard" class="btn-cancel">⬅ Vissza a Dashboardra</a>
+                <button onclick="mentes()" class="btn-save">✔ Összes Módosítás Mentése</button>
+            </div>
         </div>
     </div>
 
+    <script>
+        async function mentes() {
+            const sorok = document.querySelectorAll('#pipetta-sorok tr');
+            const adatok = [];
+
+            sorok.forEach(sor => {
+                adatok.push({
+                    id: sor.getAttribute('data-id'),
+                    cleaned: sor.querySelector('.cb-cleaned').checked,
+                    maintained: sor.querySelector('.cb-maintained').checked,
+                    serviced: sor.querySelector('.cb-serviced').checked,
+                    calibrated: sor.querySelector('.cb-calibrated').checked,
+                    sent: sor.querySelector('.cb-sent').checked
+                });
+            });
+
+            try {
+                const res = await fetch('/api/statusz-mentes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statuszAdatok: adatok })
+                });
+                
+                if((await res.json()).success) {
+                    alert("Sikeresen mentve minden pipetta státusza!");
+                    window.location.href = '/dashboard';
+                } else {
+                    alert("Hiba történt a mentéskor.");
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Hálózati hiba!");
+            }
+        }
+    </script>
 </body>
 </html>

@@ -86,25 +86,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% jobs.forEach(function(job) { 
-                        let keszSzam = 0;
-                        if(job.is_cleaned) keszSzam++;
-                        if(job.is_mantained) keszSzam++; // Itt az új mantained pipa!
-                        if(job.is_serviced) keszSzam++;
-                        if(job.is_calibrated) keszSzam++;
-                        if(job.is_sent) keszSzam++;
-                    %>
+                    <% jobs.forEach(function(job) { %>
                         <tr>
                             <td><strong><%= job.azonosito %></strong></td>
                             <td><%= job.company_name %></td>
                             <td><%= job.datum %></td>
                             <td>
-                                <span class="badge <%= keszSzam === 5 ? 'badge-done' : 'badge-process' %>">
-                                    <%= keszSzam %>/5 Kész
-                                </span>
+                                <% if (job.osszes_pipetta > 0) { %>
+                                    <% 
+                                        // Kiszámoljuk a haladást százalékban
+                                        let szazalek = Math.round((job.kesz_pipetta / job.osszes_pipetta) * 100);
+                                        // Ha minden kész (100%), zöld legyen, egyébként sárga
+                                        let badgeClass = (szazalek === 100) ? 'badge-done' : 'badge-process';
+                                    %>
+                                    <span class="badge <%= badgeClass %>">
+                                        <%= job.kesz_pipetta %> / <%= job.osszes_pipetta %> pipetta kész (<%= szazalek %>%)
+                                    </span>
+                                <% } else { %>
+                                    <span class="badge" style="background: #eee; color: #999;">Nincs pipetta felvéve</span>
+                                <% } %>
                             </td>
                             <td>
-                                <a href="/statusz/<%= job.munka_id %>" class="btn-action">Státusz ➔</a>
+                                <a href="/statusz/<%= job.munka_id %>" class="btn-action">Pipetták kezelése ➔</a>
                             </td>
                         </tr>
                     <% }); %>
