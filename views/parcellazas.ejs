@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Parcellázás / Munka kiosztás</title>
+    <title>Parcellázás</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
         .navbar { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -43,17 +43,35 @@
         
         /* Elrejtő osztály a nézetek váltásához */
         .hidden { display: none !important; }
+
+        .nav-logo {
+            height: 40px;   
+            width: auto;  
+            margin-right: 30px; 
+            vertical-align: middle; 
+            object-fit: contain;
+        }
+       
+        .navbar h1 {
+            margin: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center; 
+        }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div>🔬 Labor Irányítópult - <strong>Parcellázás</strong></div>
+        <h1>
+            <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+            Irányítópult
+        </h1>
         <a href="/dashboard">⬅ Vissza a Főmenübe</a>
     </div>
 
     <div class="container" id="munka-nezet">
-        <h2>Munka</h2>
+        <h2>Új munka felvétel</h2>
         <div id="mentes-visszajelzes" style="text-align: center; font-weight: bold; color: #28a745; height: 24px; margin-bottom: 10px;"></div>
         <select class="form-control" id="focsomag-select" style="margin-bottom: 20px; font-weight: bold; font-size: 16px;">
             <option value="">Válasszon csomagot...</option>
@@ -220,7 +238,7 @@
                         <input type="text" class="form-control" id="torzs_gyarto" list="gyarto-lista" autocomplete="off" placeholder="Gépelj vagy válassz...">
                     </div>
                     <div class="form-group">
-                        <label>Típus:</label>
+                        <label>Modell:</label>
                         <input type="text" class="form-control" id="torzs_tipus" list="tipus-lista" autocomplete="off" placeholder="Gépelj vagy válassz...">
                     </div>
                     <div class="form-group">
@@ -269,7 +287,7 @@
         }
     });
 
-    // 3. SZELLEMLÁTÓ (Matrica keresés)
+    // 3. Matrica keresés
     document.getElementById('matrica_szam').addEventListener('blur', async function() {
         const matrica = this.value.trim();
         if(!matrica) return;
@@ -436,8 +454,6 @@
         const resp = await res.json();
         
         if(resp.success) {
-            // --- A TRÜKK ITT JÖN ---
-            
             // 1. Felirat megjelenítése
             const visszajelzo = document.getElementById('mentes-visszajelzes');
             visszajelzo.innerText = "✓ Az előző munka sikeresen mentve!";
@@ -448,7 +464,6 @@
             
             // 3. Adat mezők ürítése (csak a munkára vonatkozókat)
             document.getElementById('notes').value = '';
-            // Az árajánlatot és mérést visszaállíthatod alapra, vagy hagyhatod, ha gyakran ugyanaz
             
             // 4. 3 másodperc múlva eltüntetjük a zöld feliratot
             setTimeout(() => { visszajelzo.innerText = ""; }, 3000);
