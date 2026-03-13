@@ -35,6 +35,7 @@ const poolUtemterv = new Pool({
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true })); 
+app.use(express.json()); // <--- EZ HIÁNYZIK! Ez tanítja meg a szervert JSON-t olvasni.
 app.use(express.static('public'));
 
 app.use(session({
@@ -231,12 +232,13 @@ app.get('/parcellazas', async (req, res) => {
     try {
         // 1. Csomagok lekérése
         const resultCsomagok = await poolUtemterv.query(`
-            SELECT id, job_year, job_number, company_name, 
+                SELECT id, job_year, job_number, company_name, 
                    TO_CHAR(arrival_date, 'YYYY-MM-DD') as formatted_arrival, 
                    TO_CHAR(due_date, 'YYYY-MM-DD') as formatted_due,
                    shipping_country, shipping_zip, shipping_city, shipping_street,
                    billing_country, billing_zip, billing_city, billing_street
             FROM main_job 
+            WHERE is_closed = FALSE 
             ORDER BY id DESC
         `);
         
@@ -261,6 +263,183 @@ app.get('/parcellazas', async (req, res) => {
     } catch (error) {
         console.error("Hiba a parcellázás oldal betöltésekor:", error);
         res.status(500).send("Belső szerverhiba történt.");
+    }
+});
+// Pipetta keresése matrica szám alapján (Autocomplete-hez)
+app.get('/api/pipetta/:matrica', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Nincs bejelentkezve' });
+    
+    try {
+        const result = await poolUtemterv.query(
+            'SELECT * FROM pipetta_torzs WHERE matrica_szam = $1', 
+            [req.params.matrica]
+        );
+        
+        if (result.rows.length > 0) {
+            res.json({ letezik: true, adat: result.rows[0] });
+        } else {
+            res.json({ letezik: false });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'DB hiba' });
+    }
+});
+
+app.post('/api/munka-mentes', async (req, res) => {
+    const { munkaAdatok, pipettak } = req.body;
+    const client = await poolUtemterv.connect();
+
+    try {
+        await client.query('BEGIN'); // Tranzakció indítása (vagy minden sikerül, vagy semmi)
+
+        // 1. Megkeressük a legmagasabb sub_number-t a csomaghoz
+        const subNumRes = await client.query(
+            'SELECT COALESCE(MAX(sub_number), 0) + 1 as next_num FROM sub_job WHERE main_job_id = $1',
+            [munkaAdatok.csomag_id]
+        );
+        const nextSubNum = subNumRes.rows[0].next_num;
+
+        // 2. sub_job létrehozása
+        const subJobRes = await client.query(
+            `INSERT INTO sub_job (main_job_id, sub_number, arajanlat, meres, arrival_date, due_date, notes) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [munkaAdatok.csomag_id, nextSubNum, munkaAdatok.arajanlat, munkaAdatok.meres, munkaAdatok.arrival_date, munkaAdatok.due_date, munkaAdatok.notes]
+        );
+        const subJobId = subJobRes.rows[0].id;
+
+        // 3. Pipetták mentése ciklusban
+        for (let p of pipettak) {
+            // Előbb a törzsbe (ha még nincs benne)
+            await client.query(
+                `INSERT INTO pipetta_torzs (matrica_szam, gyarto, tipus, fajta, terfogat)
+                 VALUES ($1, $2, $3, $4, $5) ON CONFLICT (matrica_szam) DO NOTHING`,
+                [p.matrica, p.gyarto, p.tipus, p.fajta, p.terfogat]
+            );
+
+            // Aztán a mérések
+            await client.query(
+                `INSERT INTO pipetta_munka (sub_job_id, matrica_szam, kalibracios_pontok, ul_ertekek, inaccuracy_ertekek, imprecision_ertekek)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [subJobId, p.matrica, p.pontok, JSON.stringify(p.meresek.ul), JSON.stringify(p.meresek.inacc), JSON.stringify(p.meresek.imprec)]
+            );
+        }
+
+        await client.query('COMMIT');
+        res.json({ success: true });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.status(500).json({ success: false });
+    } finally {
+        client.release();
+    }
+});
+
+// Csomag lezárása (is_closed = TRUE)
+app.post('/api/csomag-lezarasa/:id', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+
+    try {
+        await poolUtemterv.query(
+            'UPDATE main_job SET is_closed = TRUE WHERE id = $1',
+            [req.params.id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+// ==========================================
+// VÉGLEGES MUNKA ÉS PIPETTA MENTÉS (POST)
+// ==========================================
+app.post('/api/munka-mentes', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false, error: 'Nincs bejelentkezve' });
+
+    const { munkaAdatok, pipettak } = req.body;
+    const client = await poolUtemterv.connect(); // Külön klienst kérünk a tranzakcióhoz
+
+    try {
+        await client.query('BEGIN'); // Tranzakció indítása
+
+        // 1. Kiszámoljuk a következő Al-munka számot (sub_number) az adott csomaghoz
+        const subNumRes = await client.query(
+            'SELECT COALESCE(MAX(sub_number), 0) + 1 as next_num FROM sub_job WHERE main_job_id = $1',
+            [munkaAdatok.csomag_id]
+        );
+        const nextSubNum = subNumRes.rows[0].next_num;
+
+        // 2. sub_job (Al-munka) létrehozása
+        const subJobRes = await client.query(
+            `INSERT INTO sub_job (main_job_id, sub_number, arajanlat, meres, arrival_date, due_date, notes) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [
+                munkaAdatok.csomag_id, 
+                nextSubNum, 
+                munkaAdatok.arajanlat, 
+                munkaAdatok.meres, 
+                munkaAdatok.arrival_date || null, 
+                munkaAdatok.due_date || null, 
+                munkaAdatok.notes
+            ]
+        );
+        const subJobId = subJobRes.rows[0].id;
+
+        // 3. Pipetták mentése (Ciklusban)
+        for (let p of pipettak) {
+            // A) Pipetta törzsadat mentése (Csak ha még nincs ilyen matrica szám)
+            await client.query(
+                `INSERT INTO pipetta_torzs (matrica_szam, gyarto, tipus, fajta, terfogat)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (matrica_szam) DO UPDATE SET 
+                    gyarto = EXCLUDED.gyarto, 
+                    tipus = EXCLUDED.tipus, 
+                    fajta = EXCLUDED.fajta, 
+                    terfogat = EXCLUDED.terfogat`,
+                [p.matrica, p.gyarto, p.tipus, p.fajta, p.terfogat]
+            );
+
+            // B) Pipetta mérési adatok mentése az adott Al-munkához
+            await client.query(
+                `INSERT INTO pipetta_munka (sub_job_id, matrica_szam, kalibracios_pontok, ul_ertekek, inaccuracy_ertekek, imprecision_ertekek)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [
+                    subJobId, 
+                    p.matrica, 
+                    p.pontok, 
+                    JSON.stringify(p.meresek.ul), 
+                    JSON.stringify(p.meresek.inacc), 
+                    JSON.stringify(p.meresek.imprec)
+                ]
+            );
+        }
+
+        await client.query('COMMIT'); // Ha minden sikerült, véglegesítjük
+        res.json({ success: true });
+
+    } catch (err) {
+        await client.query('ROLLBACK'); // Hiba esetén mindent visszavonunk
+        console.error("Mentési hiba a szerveren:", err);
+        res.status(500).json({ success: false, error: err.message });
+    } finally {
+        client.release(); // Kapcsolat visszaadása a poolnak
+    }
+});
+
+app.get('/api/pipetta/:matrica', async (req, res) => {
+    try {
+        const result = await poolUtemterv.query(
+            'SELECT * FROM pipetta_torzs WHERE matrica_szam = $1', 
+            [req.params.matrica]
+        );
+        if (result.rows.length > 0) {
+            res.json({ letezik: true, adat: result.rows[0] });
+        } else {
+            res.json({ letezik: false });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Adatbázis hiba' });
     }
 });
 
