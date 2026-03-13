@@ -93,21 +93,42 @@ app.get('/dashboard', async (req, res) => {
     if (!req.session.userId) return res.redirect('/'); 
 
     try {
-        const result = await poolUtemterv.query(`
+        // 1. Lekérdezzük a MUNKÁKAT (Sub-jobs - ez a részletes nézet)
+        const jobsResult = await poolUtemterv.query(`
             SELECT 
                 s.id AS munka_id,
                 m.id AS csomag_id,
                 m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito, 
                 m.company_name, 
-                TO_CHAR(m.arrival_date, 'YYYY-MM-DD') AS datum, 
-                s.is_cleaned, s.is_serviced, s.is_calibrated, s.is_sent
+                TO_CHAR(s.arrival_date, 'YYYY-MM-DD') AS datum, 
+                s.is_cleaned, s.is_serviced, s.is_calibrated, s.is_sent, s.is_maintained
             FROM sub_job s
             JOIN main_job m ON s.main_job_id = m.id
             ORDER BY m.job_year DESC, m.job_number DESC, s.sub_number ASC
         `);
-        res.render('dashboard', { username: req.session.username, jobs: result.rows });
+
+        // 2. Lekérdezzük a CSOMAGOKAT (Main-jobs - ez a logisztikai nézet)
+        const packagesResult = await poolUtemterv.query(`
+            SELECT 
+                id, 
+                job_year || '/' || job_number AS azonosito,
+                company_name,
+                TO_CHAR(arrival_date, 'YYYY-MM-DD') AS datum,
+                TO_CHAR(due_date, 'YYYY-MM-DD') AS hatarido,
+                is_closed,
+                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = main_job.id) AS al_munkak_szama
+            FROM main_job
+            ORDER BY id DESC
+        `);
+
+        res.render('dashboard', { 
+            username: req.session.username, 
+            jobs: jobsResult.rows,
+            packages: packagesResult.rows 
+        });
     } catch (err) {
-        console.error("Dashboard hiba:", err); res.send("Hiba a betöltéskor.");
+        console.error("Dashboard hiba:", err); 
+        res.send("Hiba a betöltéskor.");
     }
 });
 

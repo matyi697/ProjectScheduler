@@ -2,48 +2,46 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Ütemterv</title>
+    <title>Labor Irányítópult</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
-        
         .navbar { background: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .navbar h1 { margin: 0; font-size: 22px; }
         .nav-right { display: flex; align-items: center; gap: 20px; }
-        .logout-btn { background: #e74c3c; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; transition: background 0.3s; }
-        .logout-btn:hover { background: #c0392b; }
+        .logout-btn { background: #e74c3c; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .container { max-width: 1250px; margin: 30px auto; padding: 0 20px; }
 
         .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .action-bar h2 { margin: 0; color: #2c3e50; }
+        .action-buttons { display: flex; gap: 10px; }
         
-        /* Gombok egymás mellett */
-        .action-buttons { display: flex; gap: 15px; }
-        
-        .btn-new { background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; font-size: 16px; transition: background 0.3s; box-shadow: 0 2px 4px rgba(40,167,69,0.3); }
-        .btn-new:hover { background: #218838; }
+        /* TAB STÍLUSOK */
+        .tab-container { display: flex; gap: 5px; margin-bottom: -2px; }
+        .tab-btn { padding: 12px 25px; border: none; background: #e9ecef; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #666; transition: 0.3s; border: 2px solid transparent; }
+        .tab-btn.active { background: white; color: #2c3e50; border: 2px solid #ddd; border-bottom: 2px solid white; }
+        .tab-btn:hover:not(.active) { background: #dee2e6; }
 
-        /* ÚJ: Parcellázás gomb stílusa */
-        .btn-warning { background: #ffc107; color: #212529; text-decoration: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; font-size: 16px; transition: background 0.3s; box-shadow: 0 2px 4px rgba(255,193,7,0.3); }
-        .btn-warning:hover { background: #e0a800; }
-
-        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px; }
+        .card { background: white; border-radius: 0 8px 8px 8px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 2px solid #ddd; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #555; font-weight: bold; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #555; font-size: 13px; text-transform: uppercase; }
         tr:hover { background-color: #f8fbff; }
 
-        .alert-success { background: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; display: none; }
-        
-        .badge-warning-table { background: #ffc107; color: #000; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .badge-success { background: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        
-        .btn-action { background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: bold; transition: 0.2s; display: inline-block; }
-        .btn-action:hover { background: #0056b3; }
+        /* GOMBOK ÉS BADGE-EK */
+        .btn-new { background: #28a745; color: white; text-decoration: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; }
+        .btn-warning { background: #ffc107; color: #212529; text-decoration: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; }
+        .btn-action { background: #007bff; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: bold; }
         .btn-details { background: #6c757d; }
-        .btn-details:hover { background: #5a6268; }
+        
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-process { background: #ffc107; color: black; }
+        .badge-done { background: #28a745; color: white; }
+        .badge-closed { background: #6c757d; color: white; }
+        .badge-open { background: #17a2b8; color: white; }
+
+        .hidden { display: none; }
+        .alert-success { background: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body>
@@ -58,78 +56,120 @@
 
     <div class="container">
         
-        <div id="successMessage" class="alert-success">
-            ✅ A művelet sikeresen megtörtént!
+        <div id="successMessage" class="alert-success" style="display:none;">
+            ✅ Művelet sikeres!
         </div>
 
         <div class="action-bar">
-            <h2>Munkák Áttekintése</h2>
+            <h2>Vezérlőpult</h2>
             <div class="action-buttons">
-                <a href="/parcellazas" class="btn-warning">📦 Parcellázás</a>
+                <a href="/parcellazas" class="btn-warning">📦 Parcellázás (Munka kiosztás)</a>
                 <a href="/uj-munka" class="btn-new">➕ Új csomag felvétele</a>
             </div>
         </div>
 
-        <div class="card">
-            <h3>Folyamatban lévő munkák listája</h3>
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('munka-tab', this)">🛠 Munkák (Pipetta státuszok)</button>
+            <button class="tab-btn" onclick="switchTab('csomag-tab', this)">📦 Csomagok (Logisztika)</button>
+        </div>
+
+        <div id="munka-tab" class="card">
+            <h3>Folyamatban lévő Al-munkák</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Munka Száma</th>
-                        <th>Ügyfél (Cég)</th>
-                        <th>Átvétel Dátuma</th>
+                        <th>Munka ID</th>
+                        <th>Ügyfél</th>
+                        <th>Dátum</th>
                         <th>Haladás</th>
                         <th>Műveletek</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (jobs.length === 0) { %>
+                    <% jobs.forEach(function(job) { 
+                        let keszSzam = 0;
+                        if(job.is_cleaned) keszSzam++;
+                        if(job.is_mantained) keszSzam++; // Itt az új mantained pipa!
+                        if(job.is_serviced) keszSzam++;
+                        if(job.is_calibrated) keszSzam++;
+                        if(job.is_sent) keszSzam++;
+                    %>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: #888; padding: 40px; font-style: italic;">
-                                Jelenleg nincs egyetlen munka sem a rendszerben.
+                            <td><strong><%= job.azonosito %></strong></td>
+                            <td><%= job.company_name %></td>
+                            <td><%= job.datum %></td>
+                            <td>
+                                <span class="badge <%= keszSzam === 5 ? 'badge-done' : 'badge-process' %>">
+                                    <%= keszSzam %>/5 Kész
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/statusz/<%= job.munka_id %>" class="btn-action">Státusz ➔</a>
                             </td>
                         </tr>
-                    <% } else { %>
-                        <% jobs.forEach(function(job) { %>
-                            <% 
-                                let keszSzam = 0;
-                                if(job.is_cleaned) keszSzam++;
-                                if(job.is_serviced) keszSzam++;
-                                if(job.is_calibrated) keszSzam++;
-                                if(job.is_sent) keszSzam++;
-                                
-                                let statuszSzoveg = (keszSzam === 4) ? "Befejezve" : keszSzam + "/4 Folyamatban";
-                                let badgeClass = (keszSzam === 4) ? "badge-success" : "badge-warning-table";
-                            %>
-                            <tr>
-                                <td><strong><%= job.azonosito %></strong></td>
-                                <td><%= job.company_name %></td>
-                                <td><%= job.datum ? job.datum : 'Nincs megadva' %></td>
-                                <td>
-                                    <span class="<%= badgeClass %>"><%= statuszSzoveg %></span>
-                                </td>
-                                <td>
-                                    <a href="/reszletek/<%= job.csomag_id %>" class="btn-action btn-details" style="margin-right: 5px;">ℹ️ Részletek</a>
-                                    <a href="/statusz/<%= job.munka_id %>" class="btn-action">Státusz ➔</a>
-                                </td>
-                            </tr>
-                        <% }); %>
-                    <% } %>
+                    <% }); %>
                 </tbody>
             </table>
         </div>
+
+        <div id="csomag-tab" class="card hidden">
+            <h3>Beérkezett Csomagok</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Csomagszám</th>
+                        <th>Ügyfél</th>
+                        <th>Beérkezés</th>
+                        <th>Határidő</th>
+                        <th>Munkák</th>
+                        <th>Állapot</th>
+                        <th>Műveletek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% packages.forEach(function(pkg) { %>
+                        <tr>
+                            <td><strong><%= pkg.azonosito %></strong></td>
+                            <td><%= pkg.company_name %></td>
+                            <td><%= pkg.datum %></td>
+                            <td><%= pkg.hatarido %></td>
+                            <td><span class="badge badge-open"><%= pkg.al_munkak_szama %> db munka</span></td>
+                            <td>
+                                <span class="badge <%= pkg.is_closed ? 'badge-closed' : 'badge-open' %>">
+                                    <%= pkg.is_closed ? 'Lezárva' : 'Nyitott' %>
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/reszletek/<%= pkg.id %>" class="btn-action btn-details">ℹ️ Adatlap</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script>
+        function switchTab(tabId, btn) {
+            // Elrejtjük az összes kártyát
+            document.getElementById('munka-tab').classList.add('hidden');
+            document.getElementById('csomag-tab').classList.add('hidden');
+            
+            // Megjelenítjük a választottat
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Gombok stílusa
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // Siker üzenet kezelése
         const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('success') === '1') {
+        if(urlParams.get('success')) {
             document.getElementById('successMessage').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('successMessage').style.display = 'none';
-            }, 4000);
-            window.history.replaceState({}, document.title, window.location.pathname);
+            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 3000);
         }
     </script>
-
 </body>
 </html>
