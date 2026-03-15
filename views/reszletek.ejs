@@ -3,30 +3,45 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Csomag Adatlap - <%= csomag.azonosito %>
-    </title>
+    <title>Csomag Adatlap - <%= csomag.azonosito %></title>
     <style>
-        :root {
+:root {
             --primary: #2c3e50;
             --accent: #007bff;
             --success: #28a745;
+            --warning: #ffc107; /* A dashboard gombjaihoz kell */
             --danger: #dc3545;
             --gray: #6c757d;
+            --bg: rgb(234, 234, 234); /* A részletek oldal háttere */
         }
+
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
+            /* A gradiens fixálása és nyújtása */
+            background: linear-gradient(135deg, #f0f2f5 0%, #a3b3c6 100%);
+            background-attachment: fixed; /* Ez a trükk: a háttér nem görög a tartalommal */
+            min-height: 100vh;           /* Legalább 100% viewport magasság */
+
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
         }
 
+        .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
+        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
+        .logout-btn { background: transparent; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s; }
+        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
+        .navbar a { color: white; text-decoration: none; font-weight: bold; }
+        .nav-link { color: white; text-decoration: none; font-weight: bold; font-size: 14px; opacity: 0.9; transition: 0.3s; }
+        .nav-link:hover { opacity: 1; color: #ffc107; }
         .container {
             max-width: 1000px;
             margin: 0 auto;
         }
-
+       
         /* Header & Status */
         .header-card {
             background: white;
@@ -38,6 +53,7 @@
             align-items: center;
             margin-bottom: 20px;
             border-left: 8px solid var(--accent);
+            margin-top: 20px;
         }
 
         .header-info h1 {
@@ -173,6 +189,8 @@
             text-decoration: none;
             font-weight: bold;
             transition: 0.3s;
+            border: none;
+            cursor: pointer;
         }
 
         .btn-back {
@@ -185,60 +203,86 @@
             background: #eee;
         }
 
-        .btn-edit {
-            background: var(--accent);
-            color: white;
+        /* Gombok a táblázatban */
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
-
+    <div class="navbar">
+        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+        <h1>📦 Csomag Információk</h1>
+        <div class="nav-right">
+            <a href="/dashboard" class="nav-link">⬅ Vissza a Főmenübe</a>
+            <a href="/logout" class="logout-btn">Kijelentkezés</a>
+        </div>
+    </div>
     <div class="container">
+        
         <div class="header-card">
             <div class="header-info">
-                <h1>Csomag: <%= csomag.azonosito %>
-                </h1>
-                <p style="margin: 5px 0 0 0; color: var(--gray);">Ügyfél: <strong>
-                        <%= csomag.company_name %>
-                    </strong></p>
+                <h1>Csomag: <%= csomag.azonosito %></h1>
+                <p style="margin: 5px 0 0; color: var(--gray); font-size: 16px;">
+                    Ügyfél: <strong style="color: var(--primary);"><%= csomag.company_name %></strong>
+                </p>
             </div>
-            <div class="status-badge <%= csomag.is_closed ? 'status-closed' : 'status-open' %>">
-                <%= csomag.is_closed ? 'Lezárt csomag' : 'Folyamatban' %>
+
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <% if (csomag.is_closed) { %>
+                    <button onclick="csomagFeloldasa(<%= csomag.id %>)" class="btn-action" style="background: var(--success); color: white; padding: 10px 20px; font-size: 14px; border-radius: 6px;">
+                        🔓 Csomag Feloldása
+                    </button>
+                <% } %>
+
+                <a href="/csomag-szerkesztes/<%= csomag.id %>" class="btn-action" style="background: #ffc107; color: #000; padding: 10px 20px; font-size: 14px; border-radius: 6px;">
+                    ✏️ Csomag szerkesztése
+                </a>
+                
+                <div class="status-badge <%= csomag.is_closed ? 'status-closed' : 'status-open' %>">
+                    <%= csomag.is_closed ? 'Lezárva' : 'Nyitott' %>
+                </div>
             </div>
         </div>
 
         <div class="details-grid">
             <div class="info-card">
                 <h3>📝 Általános Információk</h3>
-                <div class="data-row"><span class="label">Kapcsolattartó</span> <span class="value">
-                        <%= csomag.contact_name || '-' %>
-                    </span></div>
-                <div class="data-row"><span class="label">Beérkezés</span> <span class="value">
-                        <%= csomag.erkezes %>
-                    </span></div>
-                <div class="data-row"><span class="label">Határidő</span> <span class="value"
-                        style="color: var(--danger);">
-                        <%= csomag.hatarido || 'Nincs megadva' %>
-                    </span></div>
-                <div class="data-row"><span class="label">Munkák száma</span> <span class="value">
-                        <%= csomag.item_count %> db
-                    </span></div>
+                <div class="data-row">
+                    <span class="label">Kapcsolattartó</span> 
+                    <span class="value"><%= csomag.contact_name || '-' %></span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Beérkezés</span> 
+                    <span class="value"><%= csomag.erkezes %></span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Határidő</span> 
+                    <span class="value" style="color: var(--danger);"><%= csomag.hatarido || 'Nincs megadva' %></span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Munkák száma</span> 
+                    <span class="value"><%= csomag.item_count %> db</span>
+                </div>
 
                 <h3 style="margin-top:25px;">📍 Címek</h3>
                 <div class="address-container">
                     <div class="address-box">
                         <small>Szállítási cím</small>
-                        <strong>
-                            <%= csomag.shipping_city %>
-                        </strong><br>
+                        <strong><%= csomag.shipping_city %></strong><br>
                         <%= csomag.shipping_zip %>, <%= csomag.shipping_street %>
                     </div>
                     <div class="address-box">
                         <small>Számlázási cím</small>
-                        <strong>
-                            <%= csomag.billing_city %>
-                        </strong><br>
+                        <strong><%= csomag.billing_city %></strong><br>
                         <%= csomag.billing_zip %>, <%= csomag.billing_street %>
                     </div>
                 </div>
@@ -247,19 +291,19 @@
             <div class="info-card" style="background: #fffdf5; border: 1px solid #ffeeba;">
                 <h3>🚚 Logisztika & Megjegyzés</h3>
                 <p class="label">Futár adatai:</p>
-                <p class="value" style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+                <div style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #eee; font-weight: 600;">
                     <%= csomag.courier_info || 'Nincs adat' %>
-                </p>
+                </div>
 
                 <p class="label" style="margin-top: 15px;">Belső megjegyzés:</p>
-                <p class="value" style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+                <div style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #eee; font-weight: 600;">
                     <%= csomag.notes || 'Nincs megjegyzés' %>
-                </p>
+                </div>
             </div>
         </div>
 
         <div class="jobs-card">
-            <h3>🛠 Csomaghoz tartozó Al-munkák (Parcellák)</h3>
+            <h3>🛠 Csomaghoz tartozó munkák</h3>
             <table>
                 <thead>
                     <tr>
@@ -267,75 +311,90 @@
                         <th>Árajánlat</th>
                         <th>Mérés típusa</th>
                         <th>Egyedi Megjegyzés</th>
-                        <th>Művelet</th>
+                        <th>Műveletek</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% if(munkak.length===0) { %>
+                    <% if(munkak.length === 0) { %>
                         <tr>
-                            <td colspan="5" style="text-align:center; color:#888;">Még nincs parcellázva ez a csomag.
-                            </td>
+                            <td colspan="5" style="text-align:center; color:#888;">Még nincs parcellázva ez a csomag.</td>
                         </tr>
-                        <% } else { %>
-                            <% munkak.forEach(munka=> { %>
-                                <tr>
-                                    <td><strong>
-                                            <%= csomag.azonosito %>/<%= munka.sub_number %>
-                                        </strong></td>
-                                    <td>
-                                        <%= munka.arajanlat %>
-                                    </td>
-                                    <td>
-                                        <%= munka.meres %>
-                                    </td>
-                                    <td style="font-style: italic; font-size: 13px;">
-                                        <%= munka.notes || '-' %>
-                                    </td>
-                                    <td><a href="/statusz/<%= munka.id %>"
-                                            style="color: var(--accent); text-decoration:none; font-weight:bold;">Szerkesztés
-                                            ➔</a></td>
-                                </tr>
-                                <% }); %>
-                                    <% } %>
+                    <% } else { %>
+                        <% munkak.forEach(munka => { %>
+                            <tr>
+                                <td><strong><%= csomag.azonosito %>/<%= munka.sub_number %></strong></td>
+                                <td><%= munka.arajanlat %></td>
+                                <td><%= munka.meres %></td>
+                                <td style="font-style: italic; font-size: 13px;"><%= munka.notes || '-' %></td>
+                                <td style="display: flex; gap: 8px;">
+                                    <a href="/statusz/<%= munka.id %>" class="btn-action" style="background: var(--accent); color: white;">Pipetták ➔</a>
+                                    <a href="/munka-szerkesztes/<%= munka.id %>" class="btn-action" style="background: #ffc107; color: #000;">✏️ Szerk.</a>
+                                    <button onclick="torolMunkat(<%= munka.id %>)" class="btn-action" style="background: var(--danger); color: white;">🗑️ Törlés</button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
                 </tbody>
             </table>
         </div>
 
         <div class="footer">
             <a href="/dashboard" class="btn btn-back">⬅ Vissza a Dashboardra</a>
-
-            <% if (csomag.is_closed) { %>
-                <button onclick="csomagFeloldasa('<%= csomag.id %>')" class="btn"
-                    style="background: #28a745; color: white; border:none; cursor:pointer;">
-                    🔓 Csomag újranyitása (Szerkesztéshez)
-                </button>
-                <% } else { %>
-                    <a href="/parcellazas" class="btn btn-edit">📦 Új parcella hozzáadása</a>
-                    <% } %>
+            <button onclick="torolCsomagot(<%= csomag.id %>)" class="btn" style="background: var(--danger); color: white;">🗑️ Teljes Csomag Törlése</button>
         </div>
-
-        <script>
-            async function csomagFeloldasa(id) {
-                if (!confirm("Biztosan újra megnyitod ezt a csomagot? Ezután ismét megjelenik majd a parcellázási listában.")) return;
-
-                try {
-                    const res = await fetch(`/api/csomag-feloldasa/${id}`, { method: 'POST' });
-                    const data = await res.json();
-
-                    if (data.success) {
-                        alert("Csomag sikeresen újranyitva!");
-                        location.reload(); // Frissítjük az oldalt, hogy változzon a státusz és a gomb
-                    } else {
-                        alert("Hiba történt a feloldás során.");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert("Hálózati hiba!");
-                }
-            }
-        </script>
     </div>
 
-</body>
+    <script>
+        async function csomagFeloldasa(id) {
+            if (!confirm("Biztosan újra megnyitod ezt a csomagot?\nEzután ismét megjelenik majd a parcellázási listában.")) return;
 
+            try {
+                const res = await fetch(`/api/csomag-feloldasa/${id}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Csomag sikeresen újranyitva!");
+                    location.reload();
+                } else {
+                    alert("Hiba történt a feloldás során.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Hálózati hiba!");
+            }
+        }
+
+        async function torolMunkat(munkaId) {
+            if(!confirm("Biztosan törlöd ezt a parcellát (munkát)?\n\n(A pipetták törzsadatai megmaradnak, csak a mérések törlődnek!)")) return;
+
+            try {
+                const res = await fetch(`/api/munka-torlese/${munkaId}`, { method: 'DELETE' });
+                if((await res.json()).success) {
+                    window.location.reload(); 
+                } else {
+                    alert("Hiba a törlés során!");
+                }
+            } catch(e) { 
+                console.error(e); 
+                alert("Hálózati hiba!"); 
+            }
+        }
+    
+        async function torolCsomagot(csomagId) {
+            if(!confirm("FIGYELEM! Biztosan törlöd a TELJES csomagot az összes munkával együtt?\n\nEz a lépés nem visszavonható!")) return;
+        
+            try {
+                const res = await fetch(`/api/csomag-torlese/${csomagId}`, { method: 'DELETE' });
+                if((await res.json()).success) {
+                    alert("Csomag sikeresen törölve!");
+                    window.location.href = '/dashboard'; 
+                } else {
+                    alert("Hiba a törlés során!");
+                }
+            } catch(e) { 
+                console.error(e); 
+                alert("Hálózati hiba!"); 
+            }
+        }
+    </script>
+</body>
 </html>

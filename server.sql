@@ -16,6 +16,9 @@ VALUES ('admin', '8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A9
 -- *********************************************************************
 
 
+-- ==========================================
+-- 0. TISZTA LAP (Minden korábbi törlése)
+-- ==========================================
 DROP TRIGGER IF EXISTS trigger_auto_main_job_num ON main_job;
 DROP FUNCTION IF EXISTS set_main_job_number();
 
@@ -25,7 +28,7 @@ DROP TABLE IF EXISTS sub_job CASCADE;
 DROP TABLE IF EXISTS main_job CASCADE;
 
 -- ==========================================
--- 1. CSOMAG TÁBLA
+-- 1. FŐ MUNKA (CSOMAG) TÁBLA
 -- ==========================================
 CREATE TABLE main_job (
     id SERIAL PRIMARY KEY,
@@ -55,11 +58,11 @@ CREATE TABLE main_job (
 );
 
 -- ==========================================
--- 2. MUNKA TÁBLA
+-- 2. MUNKA (SUB_JOB) TÁBLA 
 -- ==========================================
 CREATE TABLE sub_job (
     id SERIAL PRIMARY KEY,
-    main_job_id INTEGER REFERENCES main_job(id) ON DELETE CASCADE,
+    main_job_id INTEGER REFERENCES main_job(id) ON DELETE CASCADE, -- Ha törlöd a csomagot, ez is törlődik!
     sub_number INTEGER NOT NULL, 
     
     arajanlat VARCHAR(50),      
@@ -67,7 +70,10 @@ CREATE TABLE sub_job (
     arrival_date DATE,          
     due_date DATE,              
     notes TEXT,                 
-
+    
+    -- ÚJRA ITT: Ez jelöli, hogy a munka KÉSZ / KIKÜLDVE (Archiválható)
+    is_sent BOOLEAN DEFAULT FALSE, 
+    
     UNIQUE (main_job_id, sub_number)
 );
 
@@ -79,15 +85,18 @@ CREATE TABLE pipetta_torzs (
     gyarto VARCHAR(100),
     tipus VARCHAR(100),
     fajta VARCHAR(50),
-    terfogat VARCHAR(50)
+    terfogat VARCHAR(50),
+    
+    -- ÚJ MEZŐ: Gyári szám
+    gyari_szam VARCHAR(100) 
 );
 
 -- ==========================================
--- 4. PIPETTA MUNKÁK
+-- 4. PIPETTA MUNKÁK (Mérés + Státuszok)
 -- ==========================================
 CREATE TABLE pipetta_munka (
     id SERIAL PRIMARY KEY,
-    sub_job_id INTEGER REFERENCES sub_job(id) ON DELETE CASCADE,
+    sub_job_id INTEGER REFERENCES sub_job(id) ON DELETE CASCADE, -- Ha törlöd a munkát, a pipetta mérések is törlődnek!
     matrica_szam VARCHAR(50) REFERENCES pipetta_torzs(matrica_szam),
     
     kalibracios_pontok INTEGER DEFAULT 1,
@@ -95,19 +104,18 @@ CREATE TABLE pipetta_munka (
     inaccuracy_ertekek JSONB,
     imprecision_ertekek JSONB,
     
-    -- ÚJ HELY: Pipettánkénti státuszok
+    -- 4 PIPETTA STÁTUSZ (Az is_sent átkerült a sub_job-ba)
     is_cleaned BOOLEAN DEFAULT FALSE,
     is_maintained BOOLEAN DEFAULT FALSE,
     is_serviced BOOLEAN DEFAULT FALSE,
     is_calibrated BOOLEAN DEFAULT FALSE,
-    is_sent BOOLEAN DEFAULT FALSE,
     
     megjegzes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==========================================
--- 5. SORSZÁMOZÓ TRIGGER
+-- 5. AZ OKOS SORSZÁMOZÓ TRIGGER
 -- ==========================================
 CREATE OR REPLACE FUNCTION set_main_job_number()
 RETURNS TRIGGER AS $$

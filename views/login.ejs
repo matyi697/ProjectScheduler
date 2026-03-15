@@ -21,8 +21,7 @@
             height: 100vh;
             margin: 0;
             background: var(--bg);
-            background: linear-gradient(135deg, #f0f2f5 0%, #b3c4d7 100%);
-        }
+            background: linear-gradient(135deg, #f0f2f5 0%, #a3b3c6 100%);        }
 
         .login-card {
             background: white;
@@ -33,6 +32,21 @@
             width: 100%;
             max-width: 350px;
             border-top: 5px solid var(--accent);
+        }
+
+        .nav-logo {
+            /* Alapméretek és illeszkedés */
+            height: 35px;
+            width: auto;
+            object-fit: contain;
+
+            background-color: #3368c6; 
+            padding: 10px;           
+            border-radius: 10px;      
+
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+
+            vertical-align: middle;
         }
 
         .logo-area {
@@ -128,7 +142,11 @@
 
 <body>
     <div class="login-card">
-        <div class="logo-area">🔬</div>
+        <div class="logo-area">
+            <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+
+        </div>
+        
         <h2>Irányítópult</h2>
         <p>Kérjük, jelentkezzen be a folytatáshoz!</p>
 

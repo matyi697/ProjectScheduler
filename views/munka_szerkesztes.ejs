@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Munka Szerkesztése</title>
+    <style>
+        :root { --primary: #2c3e50; --accent: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f0f2f5; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* A gradiens fixálása és nyújtása */
+            background: linear-gradient(135deg, #f0f2f5 0%, #a3b3c6 100%);
+            background-attachment: fixed; /* Ez a trükk: a háttér nem görög a tartalommal */
+            min-height: 100vh;           /* Legalább 100% viewport magasság */
+
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }       
+
+        .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
+        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
+        .logout-btn { background: transparent; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s; }
+        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
+        .navbar a { color: white; text-decoration: none; font-weight: bold; }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+
+        .info-box { background: #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #334155; font-size: 15px; }
+        .info-box strong { font-size: 18px; display: block; margin-bottom: 5px; color: var(--primary); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 13px; text-transform: uppercase; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .form-control:focus { outline: none; border-color: var(--accent); }
+
+        .btn { padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-save { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; padding: 4px 8px; font-size: 12px; }
+
+        /* Pipetta lista */
+        .pipetta-list { max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 10px; background: #fafafa; margin-bottom: 15px; }
+        .pipetta-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; background: white; border-radius: 4px; margin-bottom: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .pipetta-item:last-child { border-bottom: none; }
+
+        .hidden { display: none !important; }
+        .calib-row { display: flex; gap: 10px; margin-bottom: 5px; }
+        .calib-row input { flex: 1; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+        <h1>🛠 Munka Szerkesztése</h1>
+        <div class="nav-right">
+            <a href="/dashboard">⬅ Vissza a Dashboardra</a>
+            <a href="/logout" class="logout-btn">Kijelentkezés</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h2>✏️ Munka Adatainak Szerkesztése</h2>
+                <div class="info-box">
+                    <strong><%= munka.azonosito %></strong>
+                    Cég: <%= munka.company_name %>
+                </div>
+
+                <form action="/munka-szerkesztes/<%= munka.id %>" method="POST">
+                    <div class="form-group">
+                        <label>Árajánlat:</label>
+                        <select class="form-control" name="arajanlat">
+                            <option value="nem kell" <%= munka.arajanlat === 'nem kell' ? 'selected' : '' %>>Nem kell</option>
+                            <option value="kell" <%= munka.arajanlat === 'kell' ? 'selected' : '' %>>Kell</option>
+                            <option value="szerviz stop" <%= munka.arajanlat === 'szerviz stop' ? 'selected' : '' %>>Szerviz stop</option>
+                            <option value="kalibralas stop" <%= munka.arajanlat === 'kalibralas stop' ? 'selected' : '' %>>Kalibrálás stop</option>
+                            <option value="szamla stop" <%= munka.arajanlat === 'szamla stop' ? 'selected' : '' %>>Számla stop</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mérés:</label>
+                        <select class="form-control" name="meres">
+                            <option value="Kalibrálás" <%= munka.meres === 'Kalibrálás' ? 'selected' : '' %>>Kalibrálás</option>
+                            <option value="Mérési jegyzőkönyv" <%= munka.meres === 'Mérési jegyzőkönyv' ? 'selected' : '' %>>Mérési jegyzőkönyv</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Átvétel dátuma:</label>
+                            <input type="date" class="form-control" name="arrival_date" value="<%= munka.arrival_fmt %>">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Határidő:</label>
+                            <input type="date" class="form-control" name="due_date" value="<%= munka.due_fmt %>">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Megjegyzés:</label>
+                        <textarea class="form-control" name="notes" rows="3"><%= munka.notes %></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-save">💾 Munka adatainak mentése</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>🧪 A munkához tartozó pipetták</h2>
+                
+                <div class="pipetta-list">
+                    <% if (pipettak.length === 0) { %>
+                        <div style="text-align:center; color:#888; padding: 20px;">Nincs pipetta ebben a munkában.</div>
+                    <% } else { %>
+                        <% pipettak.forEach(p => { %>
+                            <div class="pipetta-item" id="pip-row-<%= p.id %>">
+                                <div>
+                                    <strong style="color:var(--accent);"><%= p.matrica_szam %></strong><br>
+                                    <span style="font-size:12px; color:#666;"><%= p.gyarto %> <%= p.tipus %> (<%= p.terfogat %>)</span>
+                                </div>
+                                <button class="btn btn-danger" onclick="torolPipettat(<%= p.id %>)">✖ Törlés</button>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+
+                <div style="text-align: right;">
+                    <button class="btn btn-success" id="btn-uj-pipetta" onclick="toggleUjPipetta()">➕ Új pipetta hozzáadása</button>
+                </div>
+
+                <div id="uj-pipetta-form" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
+                    <h3 style="margin-top:0; color:#333;">Új pipetta adatai</h3>
+                    
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:2;">
+                            <label>Matrica:</label>
+                            <input type="text" id="uj_matrica" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Pontok:</label>
+                            <input type="number" id="uj_pontok" class="form-control" value="1" min="1" oninput="generalSorokat()">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; font-weight: bold; font-size: 12px; margin-bottom: 5px;">
+                        <div style="flex:1; text-align:center;">µL</div><div style="flex:1; text-align:center;">± Inacc %</div><div style="flex:1; text-align:center;">± Imprec %</div>
+                    </div>
+                    <div id="dinamikus-mezok-tarolo">
+                        <div class="calib-row"><input type="number" step="0.01"><input type="number" step="0.01"><input type="number" step="0.01"></div>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <div class="form-group" style="flex:1;"><label>Gyártó:</label><input type="text" id="uj_gyarto" class="form-control"></div>
+                        <div class="form-group" style="flex:1;"><label>Típus:</label><input type="text" id="uj_tipus" class="form-control"></div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;"><label>Térfogat:</label><input type="text" id="uj_terfogat" class="form-control"></div>
+                        <div class="form-group" style="flex:1;"><label>Gyári szám:</label><input type="text" id="uj_gyari_szam" class="form-control"></div>
+                    </div>
+
+                    <button class="btn btn-save" style="background:#28a745;" onclick="mentUjPipettat()">✔ Hozzáadás a munkához</button>
+                    <button class="btn" style="width:100%; margin-top:5px;" onclick="toggleUjPipetta()">Mégsem</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const munkaId = <%= munka.id %>;
+
+        // Pipetta keresés (Autofill)
+        document.getElementById('uj_matrica').addEventListener('blur', async function() {
+            const matrica = this.value.trim();
+            if(!matrica) return;
+            try {
+                const res = await fetch('/api/pipetta/' + matrica);
+                const data = await res.json();
+                if(data.letezik) {
+                    document.getElementById('uj_gyarto').value = data.adat.gyarto || '';
+                    document.getElementById('uj_tipus').value = data.adat.tipus || '';
+                    document.getElementById('uj_terfogat').value = data.adat.terfogat || '';
+                    document.getElementById('uj_gyari_szam').value = data.adat.gyari_szam || '';
+                }
+            } catch(e) { console.error(e); }
+        });
+
+        // Törlés
+        async function torolPipettat(pipettaMunkaId) {
+            if(!confirm("Biztosan törlöd ezt a pipettát a munkából? Ez a lépés nem visszavonható!")) return;
+            try {
+                const res = await fetch(`/api/pipetta-torlese/${pipettaMunkaId}`, { method: 'DELETE' });
+                if((await res.json()).success) {
+                    document.getElementById(`pip-row-${pipettaMunkaId}`).remove();
+                } else alert("Hiba a törléskor!");
+            } catch(e) { console.error(e); alert("Hálózati hiba!"); }
+        }
+
+        // Űrlap nyit/csuk
+        function toggleUjPipetta() {
+            const form = document.getElementById('uj-pipetta-form');
+            const btn = document.getElementById('btn-uj-pipetta');
+            form.classList.toggle('hidden');
+            btn.classList.toggle('hidden');
+        }
+
+        // Dinamikus sorok
+        function generalSorokat() {
+            let darab = parseInt(document.getElementById('uj_pontok').value) || 1;
+            const tarolo = document.getElementById('dinamikus-mezok-tarolo');
+            tarolo.innerHTML = ''; 
+            for(let i = 0; i < darab; i++) {
+                tarolo.innerHTML += `<div class="calib-row"><input type="number" step="0.01"><input type="number" step="0.01"><input type="number" step="0.01"></div>`;
+            }
+        }
+
+        // Új pipetta mentése
+        async function mentUjPipettat() {
+            const matrica = document.getElementById('uj_matrica').value;
+            if(!matrica) return alert("A matrica szám kötelező!");
+
+            const uls = [], inaccs = [], imprecs = [];
+            document.querySelectorAll('.calib-row').forEach(row => {
+                const ins = row.querySelectorAll('input');
+                uls.push(ins[0].value); inaccs.push(ins[1].value); imprecs.push(ins[2].value);
+            });
+
+            const adatok = {
+                matrica: matrica,
+                pontok: document.getElementById('uj_pontok').value,
+                gyarto: document.getElementById('uj_gyarto').value,
+                tipus: document.getElementById('uj_tipus').value,
+                fajta: "", // Itt most leegyszerűsítettük
+                terfogat: document.getElementById('uj_terfogat').value,
+                gyari_szam: document.getElementById('uj_gyari_szam').value,
+                meresek: { ul: uls, inacc: inaccs, imprec: imprecs }
+            };
+
+            try {
+                const res = await fetch(`/api/pipetta-hozzaadasa/${munkaId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(adatok)
+                });
+                
+                if((await res.json()).success) {
+                    alert("Pipetta sikeresen hozzáadva!");
+                    window.location.reload(); // Frissítjük az oldalt, hogy megjelenjen a listában
+                } else alert("Hiba a mentés során!");
+            } catch(e) { console.error(e); alert("Hálózati hiba!"); }
+        }
+    </script>
+</body>
+</html>
