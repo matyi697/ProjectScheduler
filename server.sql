@@ -2,14 +2,14 @@
 --                      user_management
 -- *********************************************************************
 
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
-);
+--CREATE TABLE IF NOT EXISTS users (
+--    id SERIAL PRIMARY KEY,
+--    username VARCHAR(50) UNIQUE NOT NULL,
+--    password VARCHAR(255) NOT NULL
+--);
 
-INSERT INTO users (username, password) 
-VALUES ('admin', '8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918');
+--INSERT INTO users (username, password) 
+--VALUES ('admin', '8C6976E5B5410415BDE908BD4DEE15DFB167A9C873FC4BB8A81F6F2AB448A918');
 
 -- *********************************************************************
 --                      utemterv_beta
