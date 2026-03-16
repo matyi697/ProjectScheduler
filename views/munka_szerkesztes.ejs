@@ -70,12 +70,29 @@
         <div class="grid">
             <div class="card">
                 <h2>✏️ Munka Adatainak Szerkesztése</h2>
+                
                 <div class="info-box">
-                    <strong><%= munka.azonosito %></strong>
-                    Cég: <%= munka.company_name %>
+                    <strong><%= munka.company_name %></strong>
+                    Csomag alapadatai: <%= munka.job_year %>/<%= munka.job_number %>
                 </div>
 
                 <form action="/munka-szerkesztes/<%= munka.id %>" method="POST">
+                    
+                    <div class="form-group" style="background: #f0f7ff; padding: 15px; border-radius: 8px; border: 1px solid #cce3ff; margin-bottom: 20px;">
+                        <label style="color: var(--accent); font-weight: bold;">Munka egyedi sorszáma:</label>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 18px; margin-top: 5px;">
+                            <span style="font-weight: bold; color: #666;">
+                                <%= munka.job_year %>/<%= munka.job_number %>/
+                            </span>
+                            <input type="number" name="sub_number" class="form-control" 
+                                   value="<%= munka.sub_number %>" required 
+                                   style="width: 80px; font-weight: bold; text-align: center; border: 2px solid var(--accent); font-size: 18px;">
+                        </div>
+                        <small style="color: #7a869a; display: block; margin-top: 8px; font-style: italic;">
+                            * Itt csak a parcella sorszámát (a végén lévő számot) tudod módosítani.
+                        </small>
+                    </div>
+
                     <div class="form-group">
                         <label>Árajánlat:</label>
                         <select class="form-control" name="arajanlat">
@@ -86,6 +103,7 @@
                             <option value="szamla stop" <%= munka.arajanlat === 'szamla stop' ? 'selected' : '' %>>Számla stop</option>
                         </select>
                     </div>
+
                     <div class="form-group">
                         <label>Mérés:</label>
                         <select class="form-control" name="meres">
@@ -93,6 +111,7 @@
                             <option value="Mérési jegyzőkönyv" <%= munka.meres === 'Mérési jegyzőkönyv' ? 'selected' : '' %>>Mérési jegyzőkönyv</option>
                         </select>
                     </div>
+
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
                             <label>Átvétel dátuma:</label>
@@ -103,14 +122,22 @@
                             <input type="date" class="form-control" name="due_date" value="<%= munka.due_fmt %>">
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label>Megjegyzés:</label>
                         <textarea class="form-control" name="notes" rows="3"><%= munka.notes %></textarea>
                     </div>
+
                     <button type="submit" class="btn btn-save">💾 Munka adatainak mentése</button>
                 </form>
             </div>
 
+            <div class="card">
+                <h2>🧪 A munkához tartozó pipetták</h2>
+                ...
+            </div>
+        </div>
+    </div>
             <div class="card">
                 <h2>🧪 A munkához tartozó pipetták</h2>
                 

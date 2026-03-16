@@ -4,29 +4,27 @@
     <meta charset="UTF-8">
     <title>Labor Irányítópult</title>
     <style>
-:root {
+        :root {
             --primary: #2c3e50;
             --accent: #007bff;
             --success: #28a745;
-            --warning: #ffc107; /* A dashboard gombjaihoz kell */
+            --warning: #ffc107;
             --danger: #dc3545;
             --gray: #6c757d;
-            --bg: rgb(234, 234, 234); /* A részletek oldal háttere */
+            --bg: rgb(234, 234, 234);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* A gradiens fixálása és nyújtása */
             background: linear-gradient(135deg, #f0f2f5 0%, #a3b3c6 100%);
-            background-attachment: fixed; /* Ez a trükk: a háttér nem görög a tartalommal */
-            min-height: 100vh;           /* Legalább 100% viewport magasság */
-
+            background-attachment: fixed;
+            min-height: 100vh;
             margin: 0;
             padding: 0;
             color: #333;
         }
 
-        /* NAVBAR - Igazítva a primary színhez */
+        /* NAVBAR */
         .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
         .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
         .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
@@ -47,23 +45,22 @@
         .btn-warning { background: var(--warning); color: #212529; }
         .btn-warning:hover { background: #e0a800; }
 
-        /* TOOLBAR (Keresés & Szűrők) - A kártya stílusához igazítva */
+        /* TOOLBAR */
         .toolbar { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
         .search-box input { padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; width: 400px; font-size: 14px; outline: none; transition: 0.3s; }
         .search-box input:focus { border-color: var(--accent); }
         .filter-box label { font-weight: 600; font-size: 14px; color: var(--gray); cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-        /* TABS - Hűvösebb, tisztább szürke háttér az inaktív füleknek */
+        /* TABS */
         .tab-container { display: flex; gap: 5px; margin-bottom: -10px; position: relative; z-index: 1; padding-left: 10px; }
         .tab-btn { padding: 12px 24px; border: none; background: #e2e8f0; cursor: pointer; border-radius: 12px 12px 0 0; font-weight: bold; color: #475569; transition: 0.3s; font-size: 14px; }
         .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 -4px 12px rgba(0,0,0,0.05); padding-bottom: 16px; margin-top: -4px; }
         .tab-btn:hover:not(.active) { background: #cbd5e1; color: var(--primary); }
 
-        /* CARDS - Pontosan a reszletek.ejs alapján */
+        /* CARDS & TABLE */
         .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); position: relative; z-index: 2; }
         .card h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 18px; color: var(--primary); }
         
-        /* TABLE - A reszletek.ejs minimalista táblázata */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th { text-align: left; padding: 14px 12px; background: #f8f9fa; color: var(--gray); font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #eee; cursor: pointer; }
         th:hover { background: #f1f3f5; }
@@ -71,23 +68,14 @@
         td { padding: 14px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; color: #1a1a1a; font-weight: 500; }
         tr:hover { background-color: #fcfcfc; }
 
-        /* BADGES - A status-badge stílusára alakítva */
-        .badge { 
-            padding: 6px 14px; 
-            border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: bold; 
-            display: inline-flex; 
-            align-items: center;    
-            letter-spacing: 0.5px; 
-            white-space: nowrap;   
-        }
+        /* BADGES */
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; letter-spacing: 0.5px; white-space: nowrap; }
         .badge-process { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .badge-done { background: #d4edda; color: var(--success); border: 1px solid #c3e6cb; }
         .badge-closed { background: #f8d7da; color: var(--danger); border: 1px solid var(--danger); }
         .badge-open { background: #e3f2fd; color: var(--accent); border: 1px solid var(--accent); }
 
-        /* ACTION BUTTONS IN TABLE */
+        /* BUTTONS IN TABLE */
         .btn-action { background: var(--accent); color: white; padding: 8px 14px; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: bold; transition: 0.2s; display: inline-block; border: none; cursor: pointer; }
         .btn-action:hover { background: #0056b3; }
         .btn-details { background: white; color: var(--gray); border: 1px solid #ddd; }
@@ -127,7 +115,7 @@
 
         <div class="toolbar">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Keresés cég, azonosító vagy dátum alapján..." onkeyup="filterTables()">
+                <input type="text" id="searchInput" placeholder="🔍 Keresés cég, azonosító vagy matrica alapján..." onkeyup="filterTables()">
             </div>
             <div class="filter-box">
                 <label>
@@ -140,6 +128,7 @@
         <div class="tab-container">
             <button class="tab-btn active" onclick="switchTab('munka-tab', this)">🛠 Munkák</button>
             <button class="tab-btn" onclick="switchTab('csomag-tab', this)">📦 Csomagok</button>
+            <button class="tab-btn" onclick="switchTab('pipetta-tab', this)">🧪 Pipetták</button>
         </div>
 
         <div id="munka-tab" class="card">
@@ -200,7 +189,19 @@
                             <td><strong><%= pkg.azonosito %></strong></td>
                             <td><%= pkg.company_name %></td>
                             <td><%= pkg.datum %></td>
-                            <td style="color: #d32f2f; font-weight: 500;"><%= pkg.hatarido || 'Nincs' %></td>
+                            
+                            <% 
+                                let dateColor = 'var(--success)';
+                                if (pkg.hatarido && pkg.hatarido !== 'Nincs') {
+                                    let due = new Date(pkg.hatarido.replace(/\./g, '-')); // Ha a backend magyar formátumot ad (ÉÉÉÉ. HH. NN.)
+                                    if (!isNaN(due.getTime())) {
+                                        let diffDays = (due - new Date()) / (1000 * 60 * 60 * 24);
+                                        if (diffDays <= 7) dateColor = 'var(--danger)';
+                                    }
+                                }
+                            %>
+                            <td style="color: <%= dateColor %>; font-weight: bold;"><%= pkg.hatarido || 'Nincs' %></td>
+                            
                             <td>
                                <span class="badge <%= pkg.kesz_munkak_szama == pkg.al_munkak_szama && pkg.al_munkak_szama > 0 ? 'badge-done' : 'badge-process' %>">
                                    <%= pkg.kesz_munkak_szama %> / <%= pkg.al_munkak_szama %> kész
@@ -208,7 +209,7 @@
                             </td>
                             <td>
                                 <span class="badge <%= pkg.is_closed ? 'badge-closed' : 'badge-process' %>">
-                                    <%= pkg.is_closed ? 'Lezárva' : 'Nyitott' %>
+                                    <%= pkg.is_closed ? 'Kiküldve' : 'Folyamatban' %>
                                 </span>
                             </td>
                             <td>
@@ -220,44 +221,80 @@
             </table>
         </div>
 
+        <div id="pipetta-tab" class="card hidden">
+            <table id="pipettaTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('pipettaTable', 0)">Matrica Szám</th>
+                        <th onclick="sortTable('pipettaTable', 1)">Gyártó / Típus</th>
+                        <th onclick="sortTable('pipettaTable', 2)">Fajta / Térfogat</th>
+                        <th>Műveletek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (typeof allPipettak !== 'undefined' && allPipettak.length > 0) { %>
+                        <% allPipettak.forEach(function(pip) { %>
+                            <tr>
+                                <td><strong><%= pip.matrica_szam %></strong></td>
+                                <td><%= pip.gyarto %> <%= pip.tipus %></td>
+                                <td><%= pip.fajta %> (<%= pip.terfogat %>)</td>
+                                <td>
+                                    <a href="/pipetta-szerkesztes/<%= encodeURIComponent(pip.matrica_szam) %>" class="btn-action" style="background: #e3f2fd; color: #007bff; border: 1px solid #007bff;">✏️ Adatlap & Előzmények</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #888;">Nincs még felvett pipetta a törzsadatbázisban.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script>
-        // Tab Váltás
+        // Tab Váltás - Kiegészítve a 3. füllel
         function switchTab(tabId, btn) {
             document.getElementById('munka-tab').classList.add('hidden');
             document.getElementById('csomag-tab').classList.add('hidden');
+            document.getElementById('pipetta-tab').classList.add('hidden');
+            
             document.getElementById(tabId).classList.remove('hidden');
+            
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
 
-        // Archívum kapcsoló (Checkbox)
+        // Archívum kapcsoló
         function toggleArchived() {
-            filterTables(); // Újra lefuttatjuk a szűrést, ha pipálunk
+            filterTables();
         }
 
-        // Kereső és Archívum szűrő (Egyesítve)
+        // Kereső és Archívum szűrő - Kiegészítve a 3. táblázattal
         function filterTables() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let showArchived = document.getElementById("showArchived").checked;
             
-            let tables = [document.getElementById("munkaTable"), document.getElementById("csomagTable")];
+            let tables = [
+                document.getElementById("munkaTable"), 
+                document.getElementById("csomagTable"),
+                document.getElementById("pipettaTable") // ÚJ: A pipettákban is keres!
+            ];
             
             tables.forEach(table => {
-                if(!table) return; // Biztonsági ellenőrzés
+                if(!table) return; 
                 let tr = table.getElementsByTagName("tr");
                 
                 for (let i = 1; i < tr.length; i++) {
                     let isArchived = tr[i].classList.contains('archived-row');
                     
-                    // 1. Szabály: Ha a sor archivált, de a pipa NINCS bekapcsolva -> Rejtsük el!
                     if (isArchived && !showArchived) {
                         tr[i].style.display = "none";
                         continue; 
                     }
 
-                    // 2. Szabály: Szöveges keresés
                     let textContent = tr[i].textContent || tr[i].innerText;
                     if (textContent.toLowerCase().indexOf(input) > -1) {
                         tr[i].style.display = ""; 
@@ -268,7 +305,7 @@
             });
         }
 
-        // Oszlop-rendező funkció (Kattintásra ABC vagy Szám szerint rendez)
+        // Oszlop-rendező funkció
         function sortTable(tableId, n) {
             let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
             table = document.getElementById(tableId);

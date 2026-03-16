@@ -87,51 +87,94 @@ app.get("/logout", (req, res) => {
 // =========================================================================
 
 app.get("/dashboard", async (req, res) => {
-  if (!req.session.userId) return res.redirect("/");
+    // 1. Ellenőrizzük, hogy be van-e jelentkezve a felhasználó
+    if (!req.session.userId) {
+        return res.redirect("/");
+    }
 
-  try {
-    const jobsResult = await poolUtemterv.query(`
+    try {
+        // ==========================================
+        // 1. LEKÉRDEZÉS: CSOMAGOK
+        // ==========================================
+        const packagesResult = await poolUtemterv.query(`
             SELECT 
-                s.id AS munka_id,
-                m.id AS csomag_id,
+                m.id, 
+                m.job_year || '/' || m.job_number AS azonosito, 
+                m.company_name, 
+                TO_CHAR(m.arrival_date, 'YYYY. MM. DD.') AS datum,
+                TO_CHAR(m.due_date, 'YYYY. MM. DD.') AS hatarido,
+                m.is_closed,
+                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = m.id) AS al_munkak_szama,
+                
+                -- ÚJ LOGIKA: Egy munka (parcella) akkor van kész a csomagon belül, 
+                -- ha van benne pipetta, és az ÖSSZES pipettának minden pipája be van húzva!
+                (SELECT COUNT(*) FROM sub_job sj 
+                 WHERE sj.main_job_id = m.id 
+                 AND (SELECT COUNT(*) FROM pipetta_munka pm WHERE pm.sub_job_id = sj.id) > 0
+                 AND (SELECT COUNT(*) FROM pipetta_munka pm WHERE pm.sub_job_id = sj.id) = 
+                     (SELECT COUNT(*) FROM pipetta_munka pm 
+                      WHERE pm.sub_job_id = sj.id 
+                      -- IDE ÍRD AZOKAT A PIPÁKAT, AMIKET JELENLEG HASZNÁLTOK:
+                      AND is_cleaned = true 
+                      AND is_maintained = true 
+                      AND is_serviced = true 
+                      AND is_calibrated = true)
+                ) AS kesz_munkak_szama
+
+            FROM main_job m
+            ORDER BY m.is_closed ASC, m.id DESC
+        `);
+
+        // ==========================================
+        // 2. LEKÉRDEZÉS: MUNKÁK (Parcellák)
+        // ==========================================
+        const jobsResult = await poolUtemterv.query(`
+            SELECT 
+                s.id AS munka_id, 
                 m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito, 
                 m.company_name, 
-                TO_CHAR(s.arrival_date, 'YYYY-MM-DD') AS datum,
-                s.is_sent, -- ÚJ: Archiválva státusz lekérése
+                TO_CHAR(s.arrival_date, 'YYYY. MM. DD.') AS datum,
+                s.is_sent,
                 (SELECT COUNT(*) FROM pipetta_munka WHERE sub_job_id = s.id) AS osszes_pipetta,
+                
+                -- ÚJ LOGIKA: Egy pipetta csak akkor "kész", ha minden pipája megvan
                 (SELECT COUNT(*) FROM pipetta_munka 
                  WHERE sub_job_id = s.id 
-                 AND is_cleaned = TRUE 
-                 AND is_maintained = TRUE 
-                 AND is_serviced = TRUE 
-                 AND is_calibrated = TRUE) AS kesz_pipetta -- Kivettük az is_sent-et innen!
+                 -- UGYANAZOKAT A PIPÁKAT SOROLD FEL ITT IS:
+                 AND is_cleaned = true 
+                 AND is_maintained = true 
+                 AND is_serviced = true 
+                 AND is_calibrated = true
+                ) AS kesz_pipetta
+
             FROM sub_job s
             JOIN main_job m ON s.main_job_id = m.id
-            ORDER BY m.job_year DESC, m.job_number DESC, s.sub_number ASC
+            ORDER BY s.is_sent ASC, s.id DESC
         `);
 
-    const packagesResult = await poolUtemterv.query(`
-            SELECT 
-                id, job_year || '/' || job_number AS azonosito, company_name,
-                TO_CHAR(arrival_date, 'YYYY-MM-DD') AS datum,
-                TO_CHAR(due_date, 'YYYY-MM-DD') AS hatarido,
-                is_closed,
-                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = main_job.id) AS al_munkak_szama,
-                -- ÚJ: Kiszámoljuk hány munka van archiválva a csomagon belül
-                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = main_job.id AND is_sent = TRUE) AS kesz_munkak_szama
-            FROM main_job
-            ORDER BY id DESC
+        // ==========================================
+        // 3. ÚJ LEKÉRDEZÉS: ÖSSZES PIPETTA (A 3. fülhöz)
+        // ==========================================
+        const pipettakResult = await poolUtemterv.query(`
+            SELECT matrica_szam, gyarto, tipus, fajta, terfogat, gyari_szam
+            FROM pipetta_torzs
+            ORDER BY matrica_szam ASC
         `);
 
-    res.render("dashboard", {
-      username: req.session.username,
-      jobs: jobsResult.rows,
-      packages: packagesResult.rows,
-    });
-  } catch (err) {
-    console.error("Dashboard hiba:", err);
-    res.send("Hiba a betöltéskor.");
-  }
+        // ==========================================
+        // ADATOK ÁTADÁSA AZ EJS FÁJLNAK
+        // ==========================================
+        res.render("dashboard", {
+            username: req.session.username,
+            packages: packagesResult.rows,
+            jobs: jobsResult.rows,
+            allPipettak: pipettakResult.rows  // <-- Ez tölti fel a pipetták táblázatot!
+        });
+
+    } catch (err) {
+        console.error("Hiba a dashboard betöltésekor:", err);
+        res.status(500).send("Szerverhiba történt az adatok lekérdezésekor.");
+    }
 });
 
 app.get("/uj-munka", (req, res) => {
@@ -415,9 +458,12 @@ app.get("/munka-szerkesztes/:id", async (req, res) => {
     if (!req.session.userId) return res.redirect("/");
     
     try {
-        // Munka adatok
         const result = await poolUtemterv.query(`
-            SELECT s.*, m.company_name, m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito,
+            SELECT s.*, 
+                   m.company_name, 
+                   m.job_year,    -- EZ KELL AZ EJS-NEK
+                   m.job_number,  -- EZ KELL AZ EJS-NEK
+                   m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito,
                    TO_CHAR(s.arrival_date, 'YYYY-MM-DD') AS arrival_fmt,
                    TO_CHAR(s.due_date, 'YYYY-MM-DD') AS due_fmt
             FROM sub_job s
@@ -427,7 +473,6 @@ app.get("/munka-szerkesztes/:id", async (req, res) => {
 
         if (result.rows.length === 0) return res.send("A munka nem található.");
 
-        // Jelenleg a munkához tartozó pipetták
         const pipettakRes = await poolUtemterv.query(`
             SELECT pm.*, pt.gyarto, pt.tipus, pt.terfogat, pt.gyari_szam
             FROM pipetta_munka pm
@@ -450,13 +495,42 @@ app.get("/munka-szerkesztes/:id", async (req, res) => {
 // 2. Munka alapadatait módosító végpont
 app.post("/munka-szerkesztes/:id", async (req, res) => {
     if (!req.session.userId) return res.redirect("/");
-    const { arajanlat, meres, arrival_date, due_date, notes } = req.body;
+
+    // Hozzáadtuk a sub_number-t a listához!
+    const { sub_number, arajanlat, meres, arrival_date, due_date, notes } = req.body;
+
     try {
         await poolUtemterv.query(`
-            UPDATE sub_job SET arajanlat = $1, meres = $2, arrival_date = $3, due_date = $4, notes = $5 WHERE id = $6
-        `, [arajanlat, meres, arrival_date || null, due_date || null, notes, req.params.id]);
-        res.redirect("/dashboard?success=1");
-    } catch (err) { console.error(err); res.status(500).send("Hiba a mentés során."); }
+            UPDATE sub_job 
+            SET sub_number = $1, 
+                arajanlat = $2, 
+                meres = $3, 
+                arrival_date = $4, 
+                due_date = $5, 
+                notes = $6 
+            WHERE id = $7
+        `, [
+            sub_number, 
+            arajanlat, 
+            meres, 
+            arrival_date || null, 
+            due_date || null, 
+            notes, 
+            req.params.id
+        ]);
+
+        // Opcionális: Visszaküldés a csomag részleteihez a dashboard helyett (jobb UX)
+        const jobRes = await poolUtemterv.query("SELECT main_job_id FROM sub_job WHERE id = $1", [req.params.id]);
+        if (jobRes.rows.length > 0) {
+            res.redirect("/reszletek/" + jobRes.rows[0].main_job_id);
+        } else {
+            res.redirect("/dashboard?success=1");
+        }
+
+    } catch (err) { 
+        console.error("Hiba a mentés során:", err); 
+        res.status(500).send("Hiba a mentés során. Lehet, hogy ez a sorszám már foglalt ebben a csomagban!"); 
+    }
 });
 
 // 3. ÚJ: Egy pipetta törlése a munkából
@@ -536,33 +610,115 @@ app.get("/csomag-szerkesztes/:id", async (req, res) => {
 // 2. Módosított csomag adatok mentése
 app.post("/csomag-szerkesztes/:id", async (req, res) => {
     if (!req.session.userId) return res.redirect("/");
-    
+
+    // 1. Kinyerjük az ÖSSZES mezőt a body-ból (az országokat is!)
     const { 
-        company_name, contact_name, courier_info, arrival_date, due_date, notes,
-        billing_country, billing_zip, billing_city, billing_street,
-        shipping_country, shipping_zip, shipping_city, shipping_street
+        job_year, job_number, company_name, contact_name, 
+        arrival_date, due_date, notes, courier_info,
+        shipping_country, shipping_city, shipping_zip, shipping_street,
+        billing_country, billing_city, billing_zip, billing_street 
     } = req.body;
-    
+
+    // 2. Dátumok kezelése: Ha üres (""), legyen NULL, különben hiba lesz az SQL-ben
+    const finalArrival = arrival_date || null;
+    const finalDue = due_date || null;
+
     try {
         await poolUtemterv.query(`
-            UPDATE main_job SET 
-                company_name = $1, contact_name = $2, courier_info = $3, 
-                arrival_date = $4, due_date = $5, notes = $6,
-                billing_country = $7, billing_zip = $8, billing_city = $9, billing_street = $10,
-                shipping_country = $11, shipping_zip = $12, shipping_city = $13, shipping_street = $14
-            WHERE id = $15
+            UPDATE main_job 
+            SET job_year = $1, 
+                job_number = $2, 
+                company_name = $3, 
+                contact_name = $4,
+                arrival_date = $5,
+                due_date = $6,
+                notes = $7,
+                courier_info = $8,
+                shipping_country = $9,
+                shipping_city = $10,
+                shipping_zip = $11,
+                shipping_street = $12,
+                billing_country = $13,
+                billing_city = $14,
+                billing_zip = $15,
+                billing_street = $16
+            WHERE id = $17
         `, [
-            company_name, contact_name, courier_info, arrival_date || null, due_date || null, notes,
-            billing_country, billing_zip, billing_city, billing_street,
-            shipping_country, shipping_zip, shipping_city, shipping_street,
+            job_year, job_number, company_name, contact_name, 
+            finalArrival, finalDue, notes, courier_info,
+            shipping_country, shipping_city, shipping_zip, shipping_street,
+            billing_country, billing_city, billing_zip, billing_street,
             req.params.id
         ]);
+
+        // 3. Javított átirányítás (a te oldalad neve valószínűleg /reszletek/)
+        res.redirect("/reszletek/" + req.params.id);
         
-        // Ha kész, visszadobjuk a csomag adatlapjára (Részletek)
-        res.redirect(`/reszletek/${req.params.id}`);
     } catch (err) {
-        console.error("Hiba a csomag frissítésekor:", err);
-        res.status(500).send("Hiba a mentés során.");
+        console.error("Szerkesztési hiba:", err);
+        // Itt kiírjuk a pontos hibát a konzolra, hogy lásd, ha pl. hiányzik egy oszlop
+        res.status(500).send("Hiba történt a mentés során: " + err.message);
+    }
+});
+
+app.get("/pipetta-szerkesztes/:matrica", async (req, res) => {
+    if (!req.session.userId) return res.redirect("/");
+
+    try {
+        const matrica = req.params.matrica;
+
+        // 1. Törzsadatok lekérése
+        const pipettaRes = await poolUtemterv.query(`SELECT * FROM pipetta_torzs WHERE matrica_szam = $1`, [matrica]);
+        if (pipettaRes.rows.length === 0) return res.status(404).send("A keresett pipetta nem található.");
+
+        // 2. Munka előzmények (History) lekérése
+        const historyRes = await poolUtemterv.query(`
+            SELECT m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito,
+                   m.company_name,
+                   TO_CHAR(s.arrival_date, 'YYYY. MM. DD.') AS datum
+            FROM pipetta_munka pm
+            JOIN sub_job s ON pm.sub_job_id = s.id
+            JOIN main_job m ON s.main_job_id = m.id
+            WHERE pm.matrica_szam = $1
+            ORDER BY s.id DESC
+        `, [matrica]);
+
+        // 3. Datalist adatok
+        const gyartokRes = await poolUtemterv.query("SELECT DISTINCT gyarto FROM pipetta_torzs WHERE gyarto IS NOT NULL AND gyarto != '' ORDER BY gyarto");
+        const tipusokRes = await poolUtemterv.query("SELECT DISTINCT tipus FROM pipetta_torzs WHERE tipus IS NOT NULL AND tipus != '' ORDER BY tipus");
+
+        res.render("pipetta-szerkesztes", {
+            username: req.session.username,
+            pipetta: pipettaRes.rows[0],
+            munkak: historyRes.rows, // Átadjuk a munkákat az EJS-nek!
+            gyartok: gyartokRes.rows.map(r => r.gyarto),
+            tipusok: tipusokRes.rows.map(r => r.tipus)
+        });
+
+    } catch (err) {
+        console.error("Hiba a pipetta adatlap betöltésekor:", err);
+        res.status(500).send("Szerverhiba történt.");
+    }
+});
+
+// POST: Törzsadat mentése (itt már jó volt a lekérdezés, csak az azonosítót frissítettem matricára)
+app.post("/pipetta-szerkesztes/:matrica", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false, error: "Nincs bejelentkezve" });
+
+    const { gyarto, tipus, fajta, terfogat, gyari_szam } = req.body;
+    const matrica = req.params.matrica; // Ezt az URL-ből vesszük
+
+    try {
+        await poolUtemterv.query(`
+            UPDATE pipetta_torzs 
+            SET gyarto = $1, tipus = $2, fajta = $3, terfogat = $4, gyari_szam = $5
+            WHERE matrica_szam = $6
+        `, [gyarto, tipus, fajta, terfogat, gyari_szam, matrica]);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Hiba a pipetta törzsadat módosításakor:", err);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 

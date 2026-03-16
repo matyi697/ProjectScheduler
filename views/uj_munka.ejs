@@ -243,19 +243,19 @@
         </form>
     </div>
 
-    <script>
-        function copyAddress() {
-            document.getElementById('b_country').value = document.getElementById('s_country').value;
-            document.getElementById('b_zip').value = document.getElementById('s_zip').value;
-            document.getElementById('b_city').value = document.getElementById('s_city').value;
-            document.getElementById('b_street').value = document.getElementById('s_street').value;
-        }
+<script>
+    function copyAddress() {
+        document.getElementById('b_country').value = document.getElementById('s_country').value;
+        document.getElementById('b_zip').value = document.getElementById('s_zip').value;
+        document.getElementById('b_city').value = document.getElementById('s_city').value;
+        document.getElementById('b_street').value = document.getElementById('s_street').value;
+    }
 
-        window.onload = function() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('arrival_date').value = today;
-        }
-    </script>
+    window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('arrival_date').value = today;
+    }
+</script>
 
 </body>
 </html>
