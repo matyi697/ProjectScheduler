@@ -703,19 +703,66 @@ app.get("/pipetta-szerkesztes/:matrica", async (req, res) => {
 app.post("/pipetta-szerkesztes/:matrica", async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ success: false, error: "Nincs bejelentkezve" });
 
-    const { gyarto, tipus, fajta, terfogat, gyari_szam } = req.body;
-    const matrica = req.params.matrica; // Ezt az URL-ből vesszük
+    const eredeti_matrica = req.params.matrica; // Az eddigi matrica a URL-ből
+    const { uj_matrica, gyarto, tipus, fajta, terfogat, gyari_szam } = req.body;
 
     try {
-        await poolUtemterv.query(`
-            UPDATE pipetta_torzs 
-            SET gyarto = $1, tipus = $2, fajta = $3, terfogat = $4, gyari_szam = $5
-            WHERE matrica_szam = $6
-        `, [gyarto, tipus, fajta, terfogat, gyari_szam, matrica]);
+        await poolUtemterv.query('BEGIN');
 
+        if (eredeti_matrica !== uj_matrica) {
+            // TRÜKK: Ha megváltozott a matrica, először létrehozzuk az ÚJ matricát a törzsadatokban
+            await poolUtemterv.query(`
+                INSERT INTO pipetta_torzs (matrica_szam, gyarto, tipus, fajta, terfogat, gyari_szam)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (matrica_szam) DO UPDATE SET 
+                    gyarto = EXCLUDED.gyarto, tipus = EXCLUDED.tipus, fajta = EXCLUDED.fajta, 
+                    terfogat = EXCLUDED.terfogat, gyari_szam = EXCLUDED.gyari_szam
+            `, [uj_matrica, gyarto, tipus, fajta, terfogat, gyari_szam]);
+
+            // Másodszor: Átírjuk az összes eddigi munkánál (pipetta_munka) a matricát az újra
+            await poolUtemterv.query('UPDATE pipetta_munka SET matrica_szam = $1 WHERE matrica_szam = $2', [uj_matrica, eredeti_matrica]);
+
+            // Harmadszor: Töröljük a régi, megmaradt matricát a törzsadatokból
+            await poolUtemterv.query('DELETE FROM pipetta_torzs WHERE matrica_szam = $1', [eredeti_matrica]);
+        } else {
+            // Sima módosítás, ha a matrica szám nem változott
+            await poolUtemterv.query(`
+                UPDATE pipetta_torzs 
+                SET gyarto = $1, tipus = $2, fajta = $3, terfogat = $4, gyari_szam = $5
+                WHERE matrica_szam = $6
+            `, [gyarto, tipus, fajta, terfogat, gyari_szam, eredeti_matrica]);
+        }
+
+        await poolUtemterv.query('COMMIT');
         res.json({ success: true });
+
     } catch (err) {
+        await poolUtemterv.query('ROLLBACK');
         console.error("Hiba a pipetta törzsadat módosításakor:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 2. ÚJ DELETE VÉGPONT: Pipetta végleges törlése
+app.delete("/api/pipetta-torles/:matrica", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+
+    const matrica = req.params.matrica;
+
+    try {
+        await poolUtemterv.query('BEGIN');
+        
+        // 1. Töröljük a pipettát az összes munkából (mérésekből), hogy ne legyen hiba
+        await poolUtemterv.query('DELETE FROM pipetta_munka WHERE matrica_szam = $1', [matrica]);
+        
+        // 2. Töröljük magát a pipettát a törzsadatokból
+        await poolUtemterv.query('DELETE FROM pipetta_torzs WHERE matrica_szam = $1', [matrica]);
+
+        await poolUtemterv.query('COMMIT');
+        res.json({ success: true });
+    } catch(err) {
+        await poolUtemterv.query('ROLLBACK');
+        console.error("Hiba a törléskor:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
