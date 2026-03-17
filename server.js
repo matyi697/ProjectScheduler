@@ -134,16 +134,14 @@ app.get("/dashboard", async (req, res) => {
                 m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito, 
                 m.company_name, 
                 TO_CHAR(s.arrival_date, 'YYYY. MM. DD.') AS datum,
+                TO_CHAR(s.due_date, 'YYYY. MM. DD.') AS hatarido, -- ÚJ: Határidő lekérése!
                 s.is_sent,
                 (SELECT COUNT(*) FROM pipetta_munka WHERE sub_job_id = s.id) AS osszes_pipetta,
                 
-                -- ÚJ LOGIKA: Egy pipetta csak akkor "kész", ha minden pipája megvan
                 (SELECT COUNT(*) FROM pipetta_munka 
                  WHERE sub_job_id = s.id 
-                 -- UGYANAZOKAT A PIPÁKAT SOROLD FEL ITT IS:
+                 -- Itt figyelj rá, hogy a ti aktuális checkboxaitok legyenek!
                  AND is_cleaned = true 
-                 AND is_maintained = true 
-                 AND is_serviced = true 
                  AND is_calibrated = true
                 ) AS kesz_pipetta
 
@@ -718,6 +716,54 @@ app.post("/pipetta-szerkesztes/:matrica", async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error("Hiba a pipetta törzsadat módosításakor:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get("/api/nyitott-csomagok", async (req, res) => {
+    try {
+        const result = await poolUtemterv.query(`
+            SELECT id, job_year || '/' || job_number AS azonosito, company_name 
+            FROM main_job 
+            WHERE is_closed = false 
+            ORDER BY id DESC
+        `);
+        res.json(result.rows);
+    } catch(err) {
+        res.status(500).json({error: err.message});
+    }
+});
+
+// 2. A tényleges áthelyezés logikája
+app.post("/api/munka-athelyezes/:id", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+
+    const subJobId = req.params.id; // A jelenlegi munka ID-je
+    const { uj_csomag_id } = req.body;
+
+    try {
+        await poolUtemterv.query('BEGIN');
+
+        // 1. Kiszámoljuk, mi lesz az új munkaszám az új csomagon belül (max + 1)
+        const countRes = await poolUtemterv.query(
+            'SELECT COALESCE(MAX(sub_number), 0) + 1 AS next_sub FROM sub_job WHERE main_job_id = $1', 
+            [uj_csomag_id]
+        );
+        const nextSubNumber = countRes.rows[0].next_sub;
+
+        // 2. Sima Update: Csak a főcsomag ID-t és az új parcella sorszámot írjuk át
+        await poolUtemterv.query(`
+            UPDATE sub_job 
+            SET main_job_id = $1, sub_number = $2
+            WHERE id = $3
+        `, [uj_csomag_id, nextSubNumber, subJobId]);
+
+        await poolUtemterv.query('COMMIT');
+        res.json({ success: true });
+
+    } catch (err) {
+        await poolUtemterv.query('ROLLBACK');
+        console.error("Hiba az áthelyezéskor:", err);
         res.status(500).json({ success: false, error: err.message });
     }
 });

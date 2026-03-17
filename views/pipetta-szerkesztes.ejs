@@ -210,10 +210,12 @@
             gyari_szam: document.getElementById('torzs_gyari_szam').value
         };
 
-        const pipettaId = "<%= pipetta.id %>"; // Ezt az EJS adja át, a URL-hez kell
+        // JAVÍTÁS: Itt már a matrica_szam-ot kérjük el az EJS-től, nem az ID-t!
+        const matrica = "<%= pipetta.matrica_szam %>"; 
 
         try {
-            const res = await fetch(`/pipetta-szerkesztes/${pipettaId}`, {
+            // JAVÍTÁS: URL kódolást (encodeURIComponent) használunk, hátha van benne perjel vagy szóköz
+            const res = await fetch(`/pipetta-szerkesztes/${encodeURIComponent(matrica)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(frissitettAdatok)

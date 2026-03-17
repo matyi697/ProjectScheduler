@@ -137,7 +137,7 @@
                     <tr>
                         <th onclick="sortTable('munkaTable', 0)">Munka ID</th>
                         <th onclick="sortTable('munkaTable', 1)">Ügyfél</th>
-                        <th onclick="sortTable('munkaTable', 2)">Dátum</th>
+                        <th onclick="sortTable('munkaTable', 2)">Határidő</th>
                         <th onclick="sortTable('munkaTable', 3)">Haladás</th>
                         <th>Műveletek</th>
                     </tr>
@@ -147,7 +147,19 @@
                         <tr class="<%= job.is_sent ? 'archived-row' : '' %>" style="<%= job.is_sent ? 'display: none;' : '' %>">
                             <td><strong><%= job.azonosito %></strong></td>
                             <td><%= job.company_name %></td>
-                            <td><%= job.datum %></td>
+                            
+                            <% 
+                                let dateColor = 'var(--success)';
+                                if (job.hatarido && job.hatarido !== 'Nincs') {
+                                    let due = new Date(job.hatarido.replace(/\./g, '-')); 
+                                    if (!isNaN(due.getTime())) {
+                                        let diffDays = (due - new Date()) / (1000 * 60 * 60 * 24);
+                                        if (diffDays <= 7) dateColor = 'var(--danger)';
+                                    }
+                                }
+                            %>
+                            <td style="color: <%= dateColor %>; font-weight: bold;"><%= job.hatarido || 'Nincs' %></td>
+                            
                             <td>
                                 <% if (job.osszes_pipetta > 0) { %>
                                     <% 

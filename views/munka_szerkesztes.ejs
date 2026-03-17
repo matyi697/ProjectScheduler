@@ -66,8 +66,9 @@
         </div>
     </div>
 
-    <div class="container">
+<div class="container">
         <div class="grid">
+            
             <div class="card">
                 <h2>✏️ Munka Adatainak Szerkesztése</h2>
                 
@@ -128,16 +129,32 @@
                         <textarea class="form-control" name="notes" rows="3"><%= munka.notes %></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-save">💾 Munka adatainak mentése</button>
+                    <div class="fieldset-box" style="border: 1px solid var(--warning); background: #fffdf5; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <div style="color: #d39e00; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; font-size: 13px;">
+                            📦 Áthelyezés más csomagba
+                        </div>
+                        
+                        <div style="font-size: 12px; color: var(--gray); margin-bottom: 15px; line-height: 1.4;">
+                            Ha ezt a munkát rossz csomaghoz rögzítettétek, itt áthelyezheted egy másik, nyitott csomagba. <strong>A rendszer automatikusan új munkaszámot (pl. /2, /3) generál neki.</strong>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 12px;">Új főcsomag kiválasztása:</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="uj-csomag-select" class="form-control" style="flex: 1; border-color: var(--warning);"></select>
+                                
+                                <button type="button" class="btn" onclick="munkaAthelyezeseVeglegesites()" style="background: var(--warning); color: #212529; white-space: nowrap; border: none; font-weight: bold; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s;">
+                                    ✔ Áthelyezés
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-save" style="width: 100%; padding: 15px; font-size: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        💾 Munka adatainak mentése
+                    </button>
                 </form>
             </div>
 
-            <div class="card">
-                <h2>🧪 A munkához tartozó pipetták</h2>
-                ...
-            </div>
-        </div>
-    </div>
             <div class="card">
                 <h2>🧪 A munkához tartozó pipetták</h2>
                 
@@ -151,14 +168,14 @@
                                     <strong style="color:var(--accent);"><%= p.matrica_szam %></strong><br>
                                     <span style="font-size:12px; color:#666;"><%= p.gyarto %> <%= p.tipus %> (<%= p.terfogat %>)</span>
                                 </div>
-                                <button class="btn btn-danger" onclick="torolPipettat(<%= p.id %>)">✖ Törlés</button>
+                                <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; cursor: pointer; border: 1px solid var(--danger); background: transparent; color: var(--danger); border-radius: 4px;" onclick="torolPipettat(<%= p.id %>)">✖ Törlés</button>
                             </div>
                         <% }); %>
                     <% } %>
                 </div>
 
-                <div style="text-align: right;">
-                    <button class="btn btn-success" id="btn-uj-pipetta" onclick="toggleUjPipetta()">➕ Új pipetta hozzáadása</button>
+                <div style="text-align: right; margin-top: 15px;">
+                    <button class="btn btn-success" id="btn-uj-pipetta" style="background: var(--success); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="toggleUjPipetta()">➕ Új pipetta hozzáadása</button>
                 </div>
 
                 <div id="uj-pipetta-form" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
@@ -175,11 +192,15 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 10px; font-weight: bold; font-size: 12px; margin-bottom: 5px;">
+                    <div style="display: flex; gap: 10px; font-weight: bold; font-size: 12px; margin-bottom: 5px; color: var(--gray);">
                         <div style="flex:1; text-align:center;">µL</div><div style="flex:1; text-align:center;">± Inacc %</div><div style="flex:1; text-align:center;">± Imprec %</div>
                     </div>
                     <div id="dinamikus-mezok-tarolo">
-                        <div class="calib-row"><input type="number" step="0.01"><input type="number" step="0.01"><input type="number" step="0.01"></div>
+                        <div class="calib-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                            <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                            <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                        </div>
                     </div>
 
                     <div style="display:flex; gap:10px; margin-top:15px;">
@@ -191,96 +212,87 @@
                         <div class="form-group" style="flex:1;"><label>Gyári szám:</label><input type="text" id="uj_gyari_szam" class="form-control"></div>
                     </div>
 
-                    <button class="btn btn-save" style="background:#28a745;" onclick="mentUjPipettat()">✔ Hozzáadás a munkához</button>
-                    <button class="btn" style="width:100%; margin-top:5px;" onclick="toggleUjPipetta()">Mégsem</button>
+                    <button class="btn btn-save" style="background:#28a745; color: white; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="mentUjPipettat()">✔ Hozzáadás a munkához</button>
+                    <button class="btn" style="width:100%; margin-top:10px; padding: 12px; border: 1px solid #ccc; background: #f8f9fa; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="toggleUjPipetta()">Mégsem</button>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script>
-        const munkaId = <%= munka.id %>;
-
-        // Pipetta keresés (Autofill)
-        document.getElementById('uj_matrica').addEventListener('blur', async function() {
-            const matrica = this.value.trim();
-            if(!matrica) return;
-            try {
-                const res = await fetch('/api/pipetta/' + matrica);
-                const data = await res.json();
-                if(data.letezik) {
-                    document.getElementById('uj_gyarto').value = data.adat.gyarto || '';
-                    document.getElementById('uj_tipus').value = data.adat.tipus || '';
-                    document.getElementById('uj_terfogat').value = data.adat.terfogat || '';
-                    document.getElementById('uj_gyari_szam').value = data.adat.gyari_szam || '';
-                }
-            } catch(e) { console.error(e); }
-        });
-
-        // Törlés
-        async function torolPipettat(pipettaMunkaId) {
-            if(!confirm("Biztosan törlöd ezt a pipettát a munkából? Ez a lépés nem visszavonható!")) return;
-            try {
-                const res = await fetch(`/api/pipetta-torlese/${pipettaMunkaId}`, { method: 'DELETE' });
-                if((await res.json()).success) {
-                    document.getElementById(`pip-row-${pipettaMunkaId}`).remove();
-                } else alert("Hiba a törléskor!");
-            } catch(e) { console.error(e); alert("Hálózati hiba!"); }
-        }
-
-        // Űrlap nyit/csuk
+        // --- 1. A te meglévő kódjaid a pipetta hozzáadáshoz ---
         function toggleUjPipetta() {
             const form = document.getElementById('uj-pipetta-form');
-            const btn = document.getElementById('btn-uj-pipetta');
-            form.classList.toggle('hidden');
-            btn.classList.toggle('hidden');
+            if(form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+            } else {
+                form.classList.add('hidden');
+            }
         }
 
-        // Dinamikus sorok
         function generalSorokat() {
             let darab = parseInt(document.getElementById('uj_pontok').value) || 1;
             const tarolo = document.getElementById('dinamikus-mezok-tarolo');
             tarolo.innerHTML = ''; 
             for(let i = 0; i < darab; i++) {
-                tarolo.innerHTML += `<div class="calib-row"><input type="number" step="0.01"><input type="number" step="0.01"><input type="number" step="0.01"></div>`;
+                tarolo.innerHTML += `
+                    <div class="calib-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                        <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                        <input type="number" step="0.01" class="form-control" style="text-align: center;">
+                    </div>`;
             }
         }
+        
+        // (A mentUjPipettat() és torolPipettat() függvényeidet ide kell hagyni, ha már megírtad őket!)
 
-        // Új pipetta mentése
-        async function mentUjPipettat() {
-            const matrica = document.getElementById('uj_matrica').value;
-            if(!matrica) return alert("A matrica szám kötelező!");
+        // --- 2. ÚJ: AZ ÁTHELYEZÉS LOGIKÁJA ---
+        const athelyezendoMunkaId = "<%= munka.id %>"; 
 
-            const uls = [], inaccs = [], imprecs = [];
-            document.querySelectorAll('.calib-row').forEach(row => {
-                const ins = row.querySelectorAll('input');
-                uls.push(ins[0].value); inaccs.push(ins[1].value); imprecs.push(ins[2].value);
-            });
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const res = await fetch('/api/nyitott-csomagok');
+                const csomagok = await res.json();
+                
+                const select = document.getElementById('uj-csomag-select');
+                select.innerHTML = '<option value="">-- Válassz egy új csomagot --</option>';
+                
+                csomagok.forEach(cs => {
+                    select.innerHTML += `<option value="${cs.id}">📦 ${cs.azonosito} - ${cs.company_name}</option>`;
+                });
+            } catch(e) {
+                console.error("Nem sikerült betölteni a csomagokat az áthelyezéshez.");
+            }
+        });
 
-            const adatok = {
-                matrica: matrica,
-                pontok: document.getElementById('uj_pontok').value,
-                gyarto: document.getElementById('uj_gyarto').value,
-                tipus: document.getElementById('uj_tipus').value,
-                fajta: "", // Itt most leegyszerűsítettük
-                terfogat: document.getElementById('uj_terfogat').value,
-                gyari_szam: document.getElementById('uj_gyari_szam').value,
-                meresek: { ul: uls, inacc: inaccs, imprec: imprecs }
-            };
+        async function munkaAthelyezeseVeglegesites() {
+            const ujCsomagId = document.getElementById('uj-csomag-select').value;
+            if(!ujCsomagId) return alert("Kérlek, válassz egy új csomagot a listából!");
+
+            // Egyszerűbb megerősítés
+            if(!confirm("Biztosan áthelyezed ezt a munkát az új csomagba? Az új csomag címei fognak rá vonatkozni.")) {
+                return;
+            }
 
             try {
-                const res = await fetch(`/api/pipetta-hozzaadasa/${munkaId}`, {
+                const res = await fetch(`/api/munka-athelyezes/${athelyezendoMunkaId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(adatok)
+                    body: JSON.stringify({
+                        uj_csomag_id: ujCsomagId
+                    })
                 });
                 
-                if((await res.json()).success) {
-                    alert("Pipetta sikeresen hozzáadva!");
-                    window.location.reload(); // Frissítjük az oldalt, hogy megjelenjen a listában
-                } else alert("Hiba a mentés során!");
-            } catch(e) { console.error(e); alert("Hálózati hiba!"); }
+                const data = await res.json();
+                if(data.success) {
+                    alert("A munka sikeresen áthelyezve! A rendszer új sorszámot generált neki.");
+                    window.location.href = '/dashboard'; 
+                } else {
+                    alert("Hiba történt: " + data.error);
+                }
+            } catch(e) {
+                alert("Hálózati hiba történt az áthelyezés során!");
+            }
         }
     </script>
 </body>
