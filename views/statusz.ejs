@@ -187,7 +187,13 @@
                     <tr data-id="<%= p.id %>">
                         <td>
                             <span class="pipetta-info"><%= p.matrica_szam %></span>
-                            <span class="pipetta-sub"><%= p.gyarto %> <%= p.tipus %> (<%= p.terfogat %>)</span>
+                            <span class="pipetta-sub">
+                                <%= p.gyarto %> <%= p.tipus %> (<%= p.terfogat %>)
+                                
+                                <% if (p.gyari_szam && p.gyari_szam.trim() !== '') { %>
+                                    | <strong style="color: #555;"><%= p.gyari_szam %></strong>
+                                <% } %>
+                            </span>
                         </td>
                         <td align="center">
                             <label class="switch"><input type="checkbox" class="cb-cleaned" <%= p.is_cleaned ? 'checked' : '' %>><span class="slider"></span></label>
