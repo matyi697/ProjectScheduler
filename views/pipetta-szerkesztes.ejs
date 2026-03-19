@@ -1,91 +1,17 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <title>Pipetta Szerkesztése</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #007bff;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --gray: #6c757d;
-            --light-border: #e2e8f0;
-        }        
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f2f5 0%, #b3c4d7 100%);
-            background-attachment: fixed; 
-            min-height: 100vh;        
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-
-        /* --- NAVIGÁCIÓ --- */
-        .navbar a { color: white; text-decoration: none; font-weight: bold; }
-        .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
-        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
-        .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
-        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-        .logout-btn { background: transparent; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s; }
-        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
-        .nav-link { color: white; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; opacity: 0.9; }
-        .nav-link:hover { opacity: 1; color: var(--warning); }
-
-        /* --- FŐ KONTÉNER --- */
-        .container { 
-            max-width: 1200px; 
-            margin: 40px auto; 
-            padding: 40px; 
-            background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-        }
-
-        h2 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 10px; font-size: 26px; }
-        .subtitle { text-align: center; color: var(--gray); margin-bottom: 30px; font-size: 14px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }
-
-        /* --- ELRENDEZÉS --- */
-        .fieldset-box { border: 1px solid var(--light-border); padding: 25px; margin-bottom: 25px; position: relative; background: #fcfcfc; border-radius: 10px; }
-        .fieldset-title { position: absolute; top: -12px; left: 20px; background: white; padding: 0 12px; font-weight: bold; font-size: 13px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 13px; color: var(--gray); }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 15px; transition: all 0.2s; }
-        .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,123,255,0.1); }
-        
-        /* Írásvédett mező stílusa */
-        .form-control[readonly] { background-color: #e9ecef; color: #495057; cursor: not-allowed; font-weight: bold; text-align: center; font-size: 18px; letter-spacing: 1px; border-color: #ccc; }
-        
-        /* --- GOMBOK --- */
-        .btn { padding: 14px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-size: 15px; border: 1px solid #ddd; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; width: 100%; }
-        .btn-primary { background: var(--accent); color: white; border: none; }
-        .btn-primary:hover { background: #0056b3; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,123,255,0.2); }
-        .btn-cancel { background: #f8f9fa; color: var(--gray); margin-bottom: 10px; }
-        .btn-cancel:hover { background: #e2e6ea; color: var(--danger); }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            table-layout: fixed; /* EZ A MÁGIA! Megakadályozza, hogy a táblázat szétnyomja a gridet */
-        }
-        .history-table th, .history-table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            word-wrap: break-word; /* Több sorba töri a hosszú cégneveket */
-            vertical-align: middle;
-        }
-
-    </style>
+    <link rel="stylesheet" href="/css/main.css">
 </head>
+
 <body>
 
     <div class="navbar">
-        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo"
+            class="nav-logo">
         <h1>🧪 Pipetta Szerkesztése</h1>
         <div class="nav-right">
             <a href="/dashboard" class="nav-link">⬅ Vissza a Főmenübe</a>
@@ -93,158 +19,196 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container-dashboard">
         <h2>✏️ Pipetta Törzsadatok</h2>
-        <div class="subtitle">Itt javíthatod a pipetta gyári adatait. Ezek az adatok az összes ehhez a matricához tartozó munkánál frissülni fognak.</div>
+        <div class="subtitle">Itt javíthatod a pipetta gyári adatait. Ezek az adatok az összes ehhez a matricához
+            tartozó munkánál frissülni fognak.</div>
 
         <form id="editForm" onsubmit="mentesASzerverre(event)">
-            
+
             <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                
+
                 <div>
-                    <div class="form-group" style="background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="form-group"
+                        style="background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <label style="text-align: center; color: var(--primary);">MATRICA SZÁM (AZONOSÍTÓ)</label>
-                        <input type="text" class="form-control" id="matrica_szam" value="<%= pipetta.matrica_szam %>" required style="font-weight: bold; text-align: center; font-size: 18px; border: 2px solid var(--accent); color: #333;">
-                        <small style="color: var(--danger); display: block; text-align: center; margin-top: 8px; font-weight: bold;">
+                        <input type="text" class="form-control" id="matrica_szam" value="<%= pipetta.matrica_szam %>"
+                            required
+                            style="font-weight: bold; text-align: center; font-size: 18px; border: 2px solid var(--accent); color: #333;">
+                        <small
+                            style="color: var(--danger); display: block; text-align: center; margin-top: 8px; font-weight: bold;">
                             ⚠️ Ha módosítod, az összes eddigi munkában is átíródik az új matricára!
                         </small>
                     </div>
 
                     <div class="fieldset-box">
-                        <div class="fieldset-title">Műszaki adatok</div>
-                        
-                        <datalist id="gyarto-lista"> <% gyartok.forEach(function(g) { %> <option value="<%= g %>"></option> <% }); %> </datalist>
-                        <datalist id="tipus-lista"> <% tipusok.forEach(function(t) { %> <option value="<%= t %>"></option> <% }); %> </datalist>
+                        <div class="fieldset-title-parcell">Műszaki adatok</div>
+
+                        <datalist id="gyarto-lista">
+                            <% gyartok.forEach(function(g) { %>
+                                <option value="<%= g %>"></option>
+                                <% }); %>
+                        </datalist>
+                        <datalist id="tipus-lista">
+                            <% tipusok.forEach(function(t) { %>
+                                <option value="<%= t %>"></option>
+                                <% }); %>
+                        </datalist>
                         <datalist id="fajta-lista">
-                            <option value="1 csatornás"></option><option value="8 csatornás"></option><option value="12 csatornás"></option>
+                            <option value="1 csatornás"></option>
+                            <option value="8 csatornás"></option>
+                            <option value="12 csatornás"></option>
                         </datalist>
 
-                        <div class="form-group"><label>Márka (Gyártó):</label><input type="text" class="form-control" id="torzs_gyarto" list="gyarto-lista" value="<%= pipetta.gyarto || '' %>"></div>
-                        <div class="form-group"><label>Modell:</label><input type="text" class="form-control" id="torzs_tipus" list="tipus-lista" value="<%= pipetta.tipus || '' %>"></div>
-                        <div class="form-group"><label>Gyári szám:</label><input type="text" class="form-control" id="torzs_gyari_szam" value="<%= pipetta.gyari_szam || '' %>"></div>
-                        <div class="form-group"><label>Fajta:</label><input type="text" class="form-control" id="torzs_fajta" list="fajta-lista" value="<%= pipetta.fajta || '' %>"></div>
-                        <div class="form-group"><label>Térfogat:</label><input type="text" class="form-control" id="torzs_terfogat" value="<%= pipetta.terfogat || '' %>"></div>
+                        <div class="form-group"><label>Márka (Gyártó):</label><input type="text" class="form-control"
+                                id="torzs_gyarto" list="gyarto-lista" value="<%= pipetta.gyarto || '' %>"></div>
+                        <div class="form-group"><label>Modell:</label><input type="text" class="form-control"
+                                id="torzs_tipus" list="tipus-lista" value="<%= pipetta.tipus || '' %>"></div>
+                        <div class="form-group"><label>Gyári szám:</label><input type="text" class="form-control"
+                                id="torzs_gyari_szam" value="<%= pipetta.gyari_szam || '' %>"></div>
+                        <div class="form-group"><label>Fajta:</label><input type="text" class="form-control"
+                                id="torzs_fajta" list="fajta-lista" value="<%= pipetta.fajta || '' %>"></div>
+                        <div class="form-group"><label>Térfogat:</label><input type="text" class="form-control"
+                                id="torzs_terfogat" value="<%= pipetta.terfogat || '' %>"></div>
                     </div>
                 </div>
 
                 <div>
                     <div class="fieldset-box" style="background: #f8fbff; height: 100%; box-sizing: border-box;">
-                        <div class="fieldset-title">🕒 Előzmények (Munkák)</div>
-                        <div style="font-size: 13px; color: var(--gray); margin-bottom: 15px;">Ezekben a munkákban szerepelt eddig a pipetta:</div>
-                        
-                        <% if (munkak.length > 0) { %>
-                            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; background: white;">
+                        <div class="fieldset-title-parcell">🕒 Előzmények (Munkák)</div>
+                        <div style="font-size: 13px; color: var(--gray); margin-bottom: 15px;">Ezekben a munkákban
+                            szerepelt eddig a pipetta:</div>
+
+                        <% if (munkak.length> 0) { %>
+                            <div
+                                style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; background: white;">
                                 <table class="history-table">
                                     <thead>
-                                        <tr style="background: #f1f3f5; color: var(--gray); text-align: left; font-size: 11px; text-transform: uppercase;">
-                                            <th style="width: 30%;">Munka ID</th><th style="width: 45%;">Cég</th><th style="width: 25%;">Dátum</th>
+                                        <tr
+                                            style="background: #f1f3f5; color: var(--gray); text-align: left; font-size: 11px; text-transform: uppercase;">
+                                            <th style="width: 30%;">Munka ID</th>
+                                            <th style="width: 45%;">Cég</th>
+                                            <th style="width: 25%;">Dátum</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <% munkak.forEach(function(m) { %>
                                             <tr style="border-bottom: 1px solid #f0f0f0;">
-                                                <td style="font-weight: bold; color: var(--primary);"><%= m.azonosito %></td>
-                                                <td><%= m.company_name %></td>
-                                                <td style="color: #888;"><%= m.datum %></td>
+                                                <td style="font-weight: bold; color: var(--primary);">
+                                                    <%= m.azonosito %>
+                                                </td>
+                                                <td>
+                                                    <%= m.company_name %>
+                                                </td>
+                                                <td style="color: #888;">
+                                                    <%= m.datum %>
+                                                </td>
                                             </tr>
-                                        <% }); %>
+                                            <% }); %>
                                     </tbody>
                                 </table>
                             </div>
-                        <% } else { %>
-                            <div style="text-align: center; color: #aaa; padding: 30px 0; font-style: italic;">Nincs még rögzített munka ehhez a pipettához.</div>
-                        <% } %>
+                            <% } else { %>
+                                <div style="text-align: center; color: #aaa; padding: 30px 0; font-style: italic;">Nincs
+                                    még rögzített munka ehhez a pipettához.</div>
+                                <% } %>
                     </div>
                 </div>
 
             </div>
 
-            <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #f0f2f5; padding-top: 20px; width: 100%;">
-                
+            <div
+                style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #f0f2f5; padding-top: 20px; width: 100%;">
+
                 <div>
-                    <button type="button" class="btn" style="background: transparent; border: 2px solid var(--danger); color: var(--danger); padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap;" onclick="pipettaVeglegesTorlese()">
+                    <button type="button" class="btn"
+                        style="background: transparent; border: 2px solid var(--danger); color: var(--danger); padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; white-space: nowrap;"
+                        onclick="pipettaVeglegesTorlese()">
                         🗑️ Pipetta Törlése
                     </button>
                 </div>
-                
+
                 <div style="display: flex; gap: 15px;">
-                    <a href="/dashboard" class="btn btn-cancel" style="padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 6px; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center;">
+                    <a href="/dashboard" class="btn btn-cancel"
+                        style="padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 6px; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center;">
                         ⬅ Mégsem
                     </a>
-                    
-                    <button type="submit" class="btn btn-primary" style="padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap;">
+
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap;">
                         💾 Módosítások Mentése
                     </button>
                 </div>
-                
+
             </div>
         </form>
     </div>
 
-<script>
-    // Az EREDETI matrica, mielőtt beleírna a felhasználó (fontos, hogy a szerver tudja, melyiket módosítjuk)
-    const eredetiMatrica = "<%= pipetta.matrica_szam %>"; 
+    <script>
+        // Az EREDETI matrica
+        const eredetiMatrica = "<%= pipetta.matrica_szam %>";
 
-    // MENTÉS
-    async function mentesASzerverre(event) {
-        event.preventDefault(); 
+        // MENTÉS
+        async function mentesASzerverre(event) {
+            event.preventDefault();
 
-        const ujMatrica = document.getElementById('matrica_szam').value.trim();
-        if (!ujMatrica) return alert("A Matrica szám nem lehet üres!");
+            const ujMatrica = document.getElementById('matrica_szam').value.trim();
+            if (!ujMatrica) return alert("A Matrica szám nem lehet üres!");
 
-        const frissitettAdatok = {
-            uj_matrica: ujMatrica,
-            gyarto: document.getElementById('torzs_gyarto').value,
-            tipus: document.getElementById('torzs_tipus').value,
-            fajta: document.getElementById('torzs_fajta').value,
-            terfogat: document.getElementById('torzs_terfogat').value,
-            gyari_szam: document.getElementById('torzs_gyari_szam').value
-        };
+            const frissitettAdatok = {
+                uj_matrica: ujMatrica,
+                gyarto: document.getElementById('torzs_gyarto').value,
+                tipus: document.getElementById('torzs_tipus').value,
+                fajta: document.getElementById('torzs_fajta').value,
+                terfogat: document.getElementById('torzs_terfogat').value,
+                gyari_szam: document.getElementById('torzs_gyari_szam').value
+            };
 
-        try {
-            const res = await fetch(`/pipetta-szerkesztes/${encodeURIComponent(eredetiMatrica)}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(frissitettAdatok)
-            });
+            try {
+                const res = await fetch(`/pipetta-szerkesztes/${encodeURIComponent(eredetiMatrica)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(frissitettAdatok)
+                });
 
-            const resp = await res.json();
-            if(resp.success) {
-                window.location.href = '/dashboard?success=1';
-            } else {
-                alert("Hiba történt a mentés során: " + (resp.error || "Ismeretlen hiba"));
+                const resp = await res.json();
+                if (resp.success) {
+                    window.location.href = '/dashboard?success=1';
+                } else {
+                    alert("Hiba történt a mentés során: " + (resp.error || "Ismeretlen hiba"));
+                }
+            } catch (e) {
+                alert("Hálózati hiba történt a mentéskor!");
             }
-        } catch(e) {
-            alert("Hálózati hiba történt a mentéskor!");
         }
-    }
 
-    // TÖRLÉS
-    async function pipettaVeglegesTorlese() {
-        const megerosites = confirm(
-            "⚠️ BIZTOSAN TÖRÖLNI AKAROD EZT A PIPETTÁT?\n\n" +
-            "Ez a művelet VÉGLEGES! A pipetta eltűnik az összes eddigi munkából, és törlődik a törzsadatbázisból is!\n\n" +
-            "Folytatod?"
-        );
+        // TÖRLÉS
+        async function pipettaVeglegesTorlese() {
+            const megerosites = confirm(
+                "⚠️ BIZTOSAN TÖRÖLNI AKAROD EZT A PIPETTÁT?\n\n" +
+                "Ez a művelet VÉGLEGES! A pipetta eltűnik az összes eddigi munkából, és törlődik a törzsadatbázisból is!\n\n" +
+                "Folytatod?"
+            );
 
-        if (!megerosites) return;
+            if (!megerosites) return;
 
-        try {
-            const res = await fetch(`/api/pipetta-torles/${encodeURIComponent(eredetiMatrica)}`, {
-                method: 'DELETE'
-            });
+            try {
+                const res = await fetch(`/api/pipetta-torles/${encodeURIComponent(eredetiMatrica)}`, {
+                    method: 'DELETE'
+                });
 
-            const data = await res.json();
-            if (data.success) {
-                alert("A pipetta véglegesen törölve lett a rendszerből!");
-                window.location.href = '/dashboard';
-            } else {
-                alert("Hiba a törlés során: " + data.error);
+                const data = await res.json();
+                if (data.success) {
+                    alert("A pipetta véglegesen törölve lett a rendszerből!");
+                    window.location.href = '/dashboard';
+                } else {
+                    alert("Hiba a törlés során: " + data.error);
+                }
+            } catch (e) {
+                alert("Hálózati hiba történt a törlés során!");
             }
-        } catch(e) {
-            alert("Hálózati hiba történt a törlés során!");
         }
-    }
-</script>
+    </script>
 </body>
+
 </html>

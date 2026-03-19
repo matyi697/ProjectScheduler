@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <title>Új csomag felvétele</title>
@@ -23,141 +24,255 @@
             color: #333;
         }
 
-        /* --- NAVIGÁCIÓ --- */
-        .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
-        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
-        .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
-        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-        .logout-btn { background: transparent; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s; }
-        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
-        .nav-link { color: white; text-decoration: none; font-weight: bold; font-size: 14px; opacity: 0.9; transition: 0.3s; }
-        .nav-link:hover { opacity: 1; color: #ffc107; }
-
-        /* --- KONTÉNER --- */
-        .container { 
-            max-width: 1000px; 
-            margin: 40px auto; 
-            background: white; 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+        .navbar {
+            background: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
-        h2 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 30px; font-size: 26px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }
 
-        /* --- EGYÉNI CSOMAGSZÁM BOX --- */
-        .custom-id-box { 
-            background: #fff9f9; 
-            padding: 20px; 
-            border-radius: 10px; 
-            text-align: center; 
-            margin-bottom: 40px; 
-            border: 2px dashed #f5c6cb; 
+        .navbar h1 {
+            margin: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .custom-id-box label { display: block; color: var(--danger); font-weight: bold; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
-        .custom-id-box input { 
-            width: 300px; 
-            padding: 10px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 18px; 
-            border: 1px solid #ced4da; 
-            border-radius: 6px; 
+
+        .nav-logo {
+            height: 35px;
+            width: auto;
+            object-fit: contain;
+            background: #3368c6 padding: 2px;
+            border-radius: 6px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            opacity: 0.9;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+            color: #ffc107;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 26px;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 20px;
+        }
+
+        .custom-id-box {
+            background: #fff9f9;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 40px;
+            border: 2px dashed #f5c6cb;
+        }
+
+        .custom-id-box label {
+            display: block;
+            color: var(--danger);
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .custom-id-box input {
+            width: 300px;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
             color: var(--primary);
         }
 
-        /* --- FORM GRID --- */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--gray); font-size: 13px; text-transform: uppercase; }
-        
-        input[type="text"], input[type="date"], textarea { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ced4da; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-family: inherit; 
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--gray);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
             font-size: 15px;
             transition: all 0.2s;
         }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,123,255,0.1); }
-        textarea { resize: vertical; min-height: 90px; }
 
-        /* --- CÍM DOBOZOK (Fieldset stílus) --- */
-        .address-box { 
-            border: 1px solid var(--light-border); 
-            padding: 25px; 
-            border-radius: 10px; 
-            background: #fdfdfd; 
-            position: relative; 
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .address-box {
+            border: 1px solid var(--light-border);
+            padding: 25px;
+            border-radius: 10px;
+            background: #fdfdfd;
+            position: relative;
             margin-top: 10px;
         }
-        .address-box h4 { 
-            margin-top: 0; 
-            margin-bottom: 20px; 
-            color: var(--primary); 
-            border-bottom: 1px solid #eee; 
-            padding-bottom: 10px; 
+
+        .address-box h4 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--primary);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
             font-size: 16px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .flex-row { display: flex; gap: 10px; }
 
-        /* --- GOMBOK --- */
-        .actions { 
-            margin-top: 40px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-top: 2px solid #f0f2f5; 
-            padding-top: 30px; 
+        .flex-row {
+            display: flex;
+            gap: 10px;
         }
-        .btn-copy { 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            padding: 6px 12px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-size: 11px; 
+
+        .actions {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #f0f2f5;
+            padding-top: 30px;
+        }
+
+        .btn-copy {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
             font-weight: bold;
-            position: absolute; 
-            right: 20px; 
-            top: 20px; 
-            transition: 0.2s; 
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            transition: 0.2s;
         }
-        .btn-copy:hover { background: var(--accent); }
-        
-        .btn-save { 
-            background: var(--success); 
-            color: white; 
-            border: none; 
-            padding: 15px 45px; 
-            font-size: 16px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: 0.3s; 
-            box-shadow: 0 4px 10px rgba(40,167,69,0.2);
+
+        .btn-copy:hover {
+            background: var(--accent);
         }
-        .btn-save:hover { background: #218838; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(40,167,69,0.3); }
-        
-        .btn-cancel { 
-            color: var(--gray); 
-            text-decoration: none; 
-            font-weight: bold; 
-            font-size: 15px; 
-            transition: 0.2s; 
+
+        .btn-save {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
         }
-        .btn-cancel:hover { color: var(--danger); }
+
+        .btn-save:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-cancel {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .btn-cancel:hover {
+            color: var(--danger);
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar">
-        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo"
+            class="nav-logo">
         <h1>📦 Csomag Felvétele</h1>
         <div class="nav-right">
             <a href="/dashboard" class="nav-link">⬅ Vissza a Főmenübe</a>
@@ -166,7 +281,7 @@
     </div>
     <div class="container">
         <form action="/uj-munka" method="POST">
-            
+
             <div class="custom-id-box">
                 <label>⚠️ Egyéni Csomagszám (Hagyd üresen az automatikushoz!)</label>
                 <input type="text" name="custom_job_id" placeholder="pl: 2026/15">
@@ -184,7 +299,8 @@
                     </div>
                     <div class="form-group">
                         <label>🚚 Futár adatai / Csomagszám:</label>
-                        <textarea name="courier_info" placeholder="Pl: GLS/DPD szám, szállítási megjegyzés..."></textarea>
+                        <textarea name="courier_info"
+                            placeholder="Pl: GLS/DPD szám, szállítási megjegyzés..."></textarea>
                     </div>
                 </div>
 
@@ -197,17 +313,18 @@
                         <label>🏁 Határidő:</label>
                         <input type="date" name="due_date">
                     </div>
-                    
+
                     <div class="form-group">
                         <label>📝 Belső megjegyzés:</label>
                         <textarea name="notes" placeholder="Minden parcellánál látható közös infó..."></textarea>
                     </div>
                 </div>
-                
+
                 <div class="address-box">
                     <h4>📍 Kiszállítási cím</h4>
                     <div class="form-group">
-                        <input type="text" id="s_country" name="shipping_country" placeholder="Ország" value="Magyarország">
+                        <input type="text" id="s_country" name="shipping_country" placeholder="Ország"
+                            value="Magyarország">
                     </div>
                     <div class="form-group flex-row">
                         <input type="text" id="s_zip" name="shipping_zip" placeholder="Ir.sz." style="width: 30%;">
@@ -217,13 +334,14 @@
                         <input type="text" id="s_street" name="shipping_street" placeholder="Utca, házszám, emelet...">
                     </div>
                 </div>
-                
+
                 <div class="address-box">
                     <h4>💳 Számlázási cím</h4>
                     <button type="button" class="btn-copy" onclick="copyAddress()">⬇ Másolás</button>
-                    
+
                     <div class="form-group">
-                        <input type="text" id="b_country" name="billing_country" placeholder="Ország" value="Magyarország">
+                        <input type="text" id="b_country" name="billing_country" placeholder="Ország"
+                            value="Magyarország">
                     </div>
                     <div class="form-group flex-row">
                         <input type="text" id="b_zip" name="billing_zip" placeholder="Ir.sz." style="width: 30%;">
@@ -243,19 +361,20 @@
         </form>
     </div>
 
-<script>
-    function copyAddress() {
-        document.getElementById('b_country').value = document.getElementById('s_country').value;
-        document.getElementById('b_zip').value = document.getElementById('s_zip').value;
-        document.getElementById('b_city').value = document.getElementById('s_city').value;
-        document.getElementById('b_street').value = document.getElementById('s_street').value;
-    }
+    <script>
+        function copyAddress() {
+            document.getElementById('b_country').value = document.getElementById('s_country').value;
+            document.getElementById('b_zip').value = document.getElementById('s_zip').value;
+            document.getElementById('b_city').value = document.getElementById('s_city').value;
+            document.getElementById('b_street').value = document.getElementById('s_street').value;
+        }
 
-    window.onload = function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('arrival_date').value = today;
-    }
-</script>
+        window.onload = function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('arrival_date').value = today;
+        }
+    </script>
 
 </body>
+
 </html>

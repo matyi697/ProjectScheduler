@@ -1,104 +1,29 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <title>Labor Irányítópult</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #007bff;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --gray: #6c757d;
-            --bg: rgb(234, 234, 234);
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f2f5 0%, #a3b3c6 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-
-        /* NAVBAR */
-        .navbar { background: var(--primary); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
-        .navbar h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
-        .nav-logo { height: 35px; width: auto; object-fit: contain; background: #3368c6 padding: 2px; border-radius: 6px; }
-        .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
-        .logout-btn { background: transparent; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); transition: 0.3s; }
-        .logout-btn:hover { background: var(--danger); border-color: var(--danger); }
-
-        .container { max-width: 1250px; margin: 30px auto; padding: 0 20px; }
-
-        /* HEADER & ACTIONS */
-        .action-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
-        .action-bar h2 { margin: 0; color: var(--primary); font-size: 28px; }
-        .action-buttons { display: flex; gap: 12px; }
-        
-        .btn { padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: 0.3s; display: inline-block; cursor: pointer; border: none; font-size: 14px; }
-        .btn-new { background: var(--success); color: white; }
-        .btn-new:hover { background: #218838; }
-        .btn-warning { background: var(--warning); color: #212529; }
-        .btn-warning:hover { background: #e0a800; }
-
-        /* TOOLBAR */
-        .toolbar { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-        .search-box input { padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; width: 400px; font-size: 14px; outline: none; transition: 0.3s; }
-        .search-box input:focus { border-color: var(--accent); }
-        .filter-box label { font-weight: 600; font-size: 14px; color: var(--gray); cursor: pointer; display: flex; align-items: center; gap: 8px; }
-
-        /* TABS */
-        .tab-container { display: flex; gap: 5px; margin-bottom: -10px; position: relative; z-index: 1; padding-left: 10px; }
-        .tab-btn { padding: 12px 24px; border: none; background: #e2e8f0; cursor: pointer; border-radius: 12px 12px 0 0; font-weight: bold; color: #475569; transition: 0.3s; font-size: 14px; }
-        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 -4px 12px rgba(0,0,0,0.05); padding-bottom: 16px; margin-top: -4px; }
-        .tab-btn:hover:not(.active) { background: #cbd5e1; color: var(--primary); }
-
-        /* CARDS & TABLE */
-        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); position: relative; z-index: 2; }
-        .card h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 18px; color: var(--primary); }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; padding: 14px 12px; background: #f8f9fa; color: var(--gray); font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #eee; cursor: pointer; }
-        th:hover { background: #f1f3f5; }
-        th::after { content: ' ↕'; font-size: 10px; color: #ccc; } 
-        td { padding: 14px 12px; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: middle; color: #1a1a1a; font-weight: 500; }
-        tr:hover { background-color: #fcfcfc; }
-
-        /* BADGES */
-        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; letter-spacing: 0.5px; white-space: nowrap; }
-        .badge-process { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .badge-done { background: #d4edda; color: var(--success); border: 1px solid #c3e6cb; }
-        .badge-closed { background: #f8d7da; color: var(--danger); border: 1px solid var(--danger); }
-        .badge-open { background: #e3f2fd; color: var(--accent); border: 1px solid var(--accent); }
-
-        /* BUTTONS IN TABLE */
-        .btn-action { background: var(--accent); color: white; padding: 8px 14px; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: bold; transition: 0.2s; display: inline-block; border: none; cursor: pointer; }
-        .btn-action:hover { background: #0056b3; }
-        .btn-details { background: white; color: var(--gray); border: 1px solid #ddd; }
-        .btn-details:hover { background: #f8f9fa; color: var(--primary); border-color: #bbb; }
-
-        .hidden { display: none; }
-        .alert-success { background: #d4edda; color: #155724; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb; font-weight: bold; }
-    </style>
+    <link rel="stylesheet" href="/css/main.css">
 </head>
+
 <body>
 
     <div class="navbar">
         <h1>
-            <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo" class="nav-logo">
+            <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png"
+                alt="Logo" class="nav-logo">
         </h1>
         <div class="nav-right">
-            <span>👤 Üdv, <strong><%= username %></strong></span>
+            <span>👤 Üdv, <strong>
+                    <%= username %>
+                </strong></span>
             <a href="/logout" class="logout-btn">Kijelentkezés</a>
         </div>
     </div>
 
-    <div class="container">
-        
+    <div class="container-dashboard">
+
         <div id="successMessage" class="alert-success" style="display:none;">
             ✅ A művelet sikeresen végrehajtva!
         </div>
@@ -144,40 +69,40 @@
                 </thead>
                 <tbody>
                     <% jobs.forEach(function(job) { %>
-                        <tr class="<%= job.is_sent ? 'archived-row' : '' %>" style="<%= job.is_sent ? 'display: none;' : '' %>">
-                            <td><strong><%= job.azonosito %></strong></td>
-                            <td><%= job.company_name %></td>
-                            
-                            <% 
-                                let dateColor = 'var(--success)';
-                                if (job.hatarido && job.hatarido !== 'Nincs') {
-                                    let due = new Date(job.hatarido.replace(/\./g, '-')); 
-                                    if (!isNaN(due.getTime())) {
-                                        let diffDays = (due - new Date()) / (1000 * 60 * 60 * 24);
-                                        if (diffDays <= 7) dateColor = 'var(--danger)';
-                                    }
-                                }
-                            %>
-                            <td style="color: <%= dateColor %>; font-weight: bold;"><%= job.hatarido || 'Nincs' %></td>
-                            
+                        <tr class="<%= job.is_sent ? 'archived-row' : '' %>"
+                            style="<%= job.is_sent ? 'display: none;' : '' %>">
+                            <td><strong>
+                                    <%= job.azonosito %>
+                                </strong></td>
                             <td>
-                                <% if (job.osszes_pipetta > 0) { %>
-                                    <% 
-                                        let szazalek = Math.round((job.kesz_pipetta / job.osszes_pipetta) * 100);
-                                        let badgeClass = (szazalek === 100) ? 'badge-done' : 'badge-process';
-                                    %>
-                                    <span class="badge <%= badgeClass %>">
-                                        <%= job.kesz_pipetta %> / <%= job.osszes_pipetta %> kész (<%= szazalek %>%)
-                                    </span>
-                                <% } else { %>
-                                    <span class="badge badge-closed">Nincs pipetta</span>
-                                <% } %>
+                                <%= job.company_name %>
                             </td>
-                            <td>
-                                <a href="/statusz/<%= job.munka_id %>" class="btn-action">Munkalap ➔</a>
-                            </td>
+
+                            <% let dateColor='var(--success)' ; if (job.hatarido && job.hatarido !=='Nincs' ) { let
+                                due=new Date(job.hatarido.replace(/\./g, '-' )); if (!isNaN(due.getTime())) { let
+                                diffDays=(due - new Date()) / (1000 * 60 * 60 * 24); if (diffDays <=7)
+                                dateColor='var(--danger)' ; } } %>
+                                <td style="color: <%= dateColor %>; font-weight: bold;">
+                                    <%= job.hatarido || 'Nincs' %>
+                                </td>
+
+                                <td>
+                                    <% if (job.osszes_pipetta> 0) { %>
+                                        <% let szazalek=Math.round((job.kesz_pipetta / job.osszes_pipetta) * 100); let
+                                            badgeClass=(szazalek===100) ? 'badge-done' : 'badge-process' ; %>
+                                            <span class="badge <%= badgeClass %>">
+                                                <%= job.kesz_pipetta %> / <%= job.osszes_pipetta %> kész (<%= szazalek
+                                                            %>%)
+                                            </span>
+                                            <% } else { %>
+                                                <span class="badge badge-closed">Nincs pipetta</span>
+                                                <% } %>
+                                </td>
+                                <td>
+                                    <a href="/statusz/<%= job.munka_id %>" class="btn-action">Munkalap ➔</a>
+                                </td>
                         </tr>
-                    <% }); %>
+                        <% }); %>
                 </tbody>
             </table>
         </div>
@@ -228,7 +153,7 @@
                                 <a href="/reszletek/<%= pkg.id %>" class="btn-action btn-details">ℹ️ Adatlap</a>
                             </td>
                         </tr>
-                    <% }); %>
+                        <% }); %>
                 </tbody>
             </table>
         </div>
@@ -251,15 +176,19 @@
                                 <td><%= pip.gyarto %> <%= pip.tipus %></td>
                                 <td><%= pip.fajta %> (<%= pip.terfogat %>)</td>
                                 <td>
-                                    <a href="/pipetta-szerkesztes/<%= encodeURIComponent(pip.matrica_szam) %>" class="btn-action" style="background: #e3f2fd; color: #007bff; border: 1px solid #007bff;">✏️ Adatlap & Előzmények</a>
+                                    <a href="/pipetta-szerkesztes/<%= encodeURIComponent(pip.matrica_szam) %>"
+                                        class="btn-action"
+                                        style="background: #e3f2fd; color: #007bff; border: 1px solid #007bff;">✏️
+                                        Adatlap & Előzmények</a>
                                 </td>
                             </tr>
-                        <% }); %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: #888;">Nincs még felvett pipetta a törzsadatbázisban.</td>
-                        </tr>
-                    <% } %>
+                            <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: #888;">Nincs még felvett
+                                            pipetta a törzsadatbázisban.</td>
+                                    </tr>
+                                    <% } %>
                 </tbody>
             </table>
         </div>
@@ -267,14 +196,14 @@
     </div>
 
     <script>
-        // Tab Váltás - Kiegészítve a 3. füllel
+        // Tab váltó
         function switchTab(tabId, btn) {
             document.getElementById('munka-tab').classList.add('hidden');
             document.getElementById('csomag-tab').classList.add('hidden');
             document.getElementById('pipetta-tab').classList.add('hidden');
-            
+
             document.getElementById(tabId).classList.remove('hidden');
-            
+
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
@@ -284,45 +213,45 @@
             filterTables();
         }
 
-        // Kereső és Archívum szűrő - Kiegészítve a 3. táblázattal
+        // Kereső és Archívum szűrő
         function filterTables() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let showArchived = document.getElementById("showArchived").checked;
-            
+
             let tables = [
-                document.getElementById("munkaTable"), 
+                document.getElementById("munkaTable"),
                 document.getElementById("csomagTable"),
-                document.getElementById("pipettaTable") // ÚJ: A pipettákban is keres!
+                document.getElementById("pipettaTable")
             ];
-            
+
             tables.forEach(table => {
-                if(!table) return; 
+                if (!table) return;
                 let tr = table.getElementsByTagName("tr");
-                
+
                 for (let i = 1; i < tr.length; i++) {
                     let isArchived = tr[i].classList.contains('archived-row');
-                    
+
                     if (isArchived && !showArchived) {
                         tr[i].style.display = "none";
-                        continue; 
+                        continue;
                     }
 
                     let textContent = tr[i].textContent || tr[i].innerText;
                     if (textContent.toLowerCase().indexOf(input) > -1) {
-                        tr[i].style.display = ""; 
+                        tr[i].style.display = "";
                     } else {
-                        tr[i].style.display = "none"; 
+                        tr[i].style.display = "none";
                     }
                 }
             });
         }
 
-        // Oszlop-rendező funkció
+        // Oszlop-rendező
         function sortTable(tableId, n) {
             let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
             table = document.getElementById(tableId);
             switching = true;
-            dir = "asc"; 
+            dir = "asc";
             while (switching) {
                 switching = false;
                 rows = table.rows;
@@ -332,7 +261,7 @@
                     y = rows[i + 1].getElementsByTagName("TD")[n];
                     let xContent = x.innerHTML.toLowerCase().replace(/<[^>]*>?/gm, '');
                     let yContent = y.innerHTML.toLowerCase().replace(/<[^>]*>?/gm, '');
-                    
+
                     if (dir == "asc") {
                         if (xContent > yContent) { shouldSwitch = true; break; }
                     } else if (dir == "desc") {
@@ -342,7 +271,7 @@
                 if (shouldSwitch) {
                     rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                     switching = true;
-                    switchcount ++; 
+                    switchcount++;
                 } else {
                     if (switchcount == 0 && dir == "asc") {
                         dir = "desc";
@@ -354,11 +283,12 @@
 
         // Siker üzenet
         const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('success')) {
+        if (urlParams.get('success')) {
             document.getElementById('successMessage').style.display = 'block';
             setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 3000);
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     </script>
 </body>
+
 </html>
