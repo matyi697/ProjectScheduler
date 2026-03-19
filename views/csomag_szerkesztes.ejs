@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Csomag Szerkesztése</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <div class="navbar">
+        <img src="https://fejlesztes.pipettacenter.hu/wp-content/uploads/2025/06/PIPETTA-CENTER-LOGO-7.png" alt="Logo"
+            class="nav-logo">
+        <h1>📦 Csomag Szerkesztése</h1>
+        <div class="nav-right">
+            <a href="/reszletek/<%= csomag.id %>">⬅ Vissza a részletekhez</a>
+            <a href="/logout" class="logout-btn">Kijelentkezés</a>
+        </div>
+    </div>
+    <div class="container-parcel">
+        <div class="card">
+
+            <div class="info-box">
+                <div>
+                    <strong>Jelenlegi azonosító: <%= csomag.azonosito %></strong>
+                </div>
+            </div>
+
+            <form action="/csomag-szerkesztes/<%= csomag.id %>" method="POST">
+
+                <div class="fieldset-box" style="border: 2px solid #f5c6cb; background: #fffcfc; margin-bottom: 30px;">
+                    <div class="fieldset-title" style="color: var(--danger); background: white; padding: 0 10px;">
+                        ⚠️ Csomag Azonosító (Év / Szám)
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Év:</label>
+                            <input type="number" name="job_year" class="form-control" value="<%= csomag.job_year %>"
+                                required style="font-weight: bold; text-align: center;">
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label>Csomagszám:</label>
+                            <input type="number" name="job_number" class="form-control" value="<%= csomag.job_number %>"
+                                required style="font-weight: bold; text-align: center;">
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0; font-size: 12px; color: var(--gray);">
+                        * Megjegyzés: Ha itt átírod a számot, az összes parcellázott munka azonosítója (pl. <%=
+                            csomag.job_year %>/<%= csomag.job_number %>/1) azonnal frissülni fog.
+                    </p>
+                </div>
+
+                <div class="grid-2col">
+                    <div>
+                        <div class="fieldset-box">
+                            <div class="fieldset-title">Cég és Logisztika</div>
+                            <div class="form-group">
+                                <label>Cég neve:</label>
+                                <input type="text" class="form-control" name="company_name"
+                                    value="<%= csomag.company_name %>" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kapcsolattartó neve:</label>
+                                <input type="text" class="form-control" name="contact_name"
+                                    value="<%= csomag.contact_name || '' %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Futár információ:</label>
+                                <input type="text" class="form-control" name="courier_info"
+                                    value="<%= csomag.courier_info || '' %>">
+                            </div>
+                        </div>
+
+                        <div class="fieldset-box">
+                            <div class="fieldset-title">Dátumok és Megjegyzés</div>
+                            <div style="display: flex; gap: 15px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Beérkezés:</label>
+                                    <input type="date" class="form-control" name="arrival_date"
+                                        value="<%= csomag.arrival_fmt %>">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Határidő:</label>
+                                    <input type="date" class="form-control" name="due_date"
+                                        value="<%= csomag.due_fmt %>">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Közös Megjegyzés:</label>
+                                <textarea class="form-control" name="notes"
+                                    rows="4"><%= csomag.notes || '' %></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="fieldset-box">
+                            <div class="fieldset-title">Kiszállítási Cím</div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="ship_country" name="shipping_country"
+                                    value="<%= csomag.shipping_country || '' %>" placeholder="Ország">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="form-group" style="width: 30%;">
+                                    <input type="text" class="form-control" id="ship_zip" name="shipping_zip"
+                                        value="<%= csomag.shipping_zip || '' %>" placeholder="Ir. sz.">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <input type="text" class="form-control" id="ship_city" name="shipping_city"
+                                        value="<%= csomag.shipping_city || '' %>" placeholder="Település">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="ship_street" name="shipping_street"
+                                    value="<%= csomag.shipping_street || '' %>" placeholder="Utca, házszám">
+                            </div>
+                        </div>
+
+                        <div class="fieldset-box">
+                            <div class="fieldset-title">Számlázási Cím</div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="bill_country" name="billing_country"
+                                    value="<%= csomag.billing_country || '' %>" placeholder="Ország">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="form-group" style="width: 30%;">
+                                    <input type="text" class="form-control" id="bill_zip" name="billing_zip"
+                                        value="<%= csomag.billing_zip || '' %>" placeholder="Ir. sz.">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <input type="text" class="form-control" id="bill_city" name="billing_city"
+                                        value="<%= csomag.billing_city || '' %>" placeholder="Település">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="bill_street" name="billing_street"
+                                    value="<%= csomag.billing_street || '' %>" placeholder="Utca, házszám">
+                            </div>
+
+                            <div style="text-align: right;">
+                                <button type="button" class="btn btn-copy" onclick="copyAddress()">⬇ Kiszállítási cím
+                                    másolása ide</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <a href="/reszletek/<%= csomag.id %>" class="btn btn-cancel">Mégsem</a>
+                    <button type="submit" class="btn btn-save">💾 Összes módosítás mentése</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function copyAddress() {
+            document.getElementById('bill_country').value = document.getElementById('ship_country').value;
+            document.getElementById('bill_zip').value = document.getElementById('ship_zip').value;
+            document.getElementById('bill_city').value = document.getElementById('ship_city').value;
+            document.getElementById('bill_street').value = document.getElementById('ship_street').value;
+        }
+    </script>
+</body>
+
+</html>
