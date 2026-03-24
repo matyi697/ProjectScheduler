@@ -403,6 +403,65 @@ app.post("/api/statusz-mentes", async (req, res) => {
     }
 });
 
+// ==============================================================
+// 1. PIPETTA HOZZÁADÁSA MEGLÉVŐ MUNKÁHOZ (Szerkesztő oldalon)
+// ==============================================================
+app.post("/api/munka-pipetta-hozzaadas", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+
+    const { munka_id, matrica, pontok, gyarto, tipus, fajta, terfogat, gyari_szam, meresek } = req.body;
+
+    try {
+        await poolUtemterv.query('BEGIN');
+
+        // 1. Törzsadat ellenőrzés/frissítés
+        await poolUtemterv.query(`
+            INSERT INTO pipetta_torzs (matrica_szam, gyarto, tipus, fajta, terfogat, gyari_szam)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (matrica_szam) DO UPDATE SET 
+                gyarto = EXCLUDED.gyarto, tipus = EXCLUDED.tipus, 
+                terfogat = EXCLUDED.terfogat, gyari_szam = EXCLUDED.gyari_szam
+        `, [matrica, gyarto, tipus, fajta, terfogat, gyari_szam]);
+
+        // 2. Mérések mentése a konkrét munkához (JAVÍTOTT OSZLOPNEVEKKEL!)
+        await poolUtemterv.query(`
+            INSERT INTO pipetta_munka (sub_job_id, matrica_szam, kalibracios_pontok, ul_ertekek, inaccuracy_ertekek, imprecision_ertekek)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+            munka_id, 
+            matrica, 
+            pontok, 
+            JSON.stringify(meresek.ul), 
+            JSON.stringify(meresek.inacc), 
+            JSON.stringify(meresek.imprec)
+        ]);
+
+        await poolUtemterv.query('COMMIT');
+        res.json({ success: true });
+
+    } catch(err) {
+        await poolUtemterv.query('ROLLBACK');
+        console.error("Hiba pipetta hozzáadásakor:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ==============================================================
+// 2. PIPETTA TÖRLÉSE EGY ADOTT MUNKÁBÓL
+// ==============================================================
+app.delete("/api/munka-pipetta-torles/:id", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ success: false });
+
+    try {
+        // Ez csak a munka és a pipetta kapcsolatát törli (a mérést), magát a fizikai pipettát nem
+        await poolUtemterv.query('DELETE FROM pipetta_munka WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch(err) {
+        console.error("Hiba pipetta munkából való törlésekor:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // =========================================================================
 // 7. TÖRLÉSI ÉS ARCHIVÁLÁSI MŰVELETEK (ÚJ VÉGPONTOK)
 // =========================================================================

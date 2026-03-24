@@ -144,7 +144,7 @@
                                         </span>
                                     </div>
                                     <button class="btn btn-danger"
-                                        style="padding: 6px 12px; font-size: 12px; cursor: pointer; border: 1px solid var(--danger); background: transparent; color: var(--danger); border-radius: 4px;"
+                                        
                                         onclick="torolPipettat(<%= p.id %>)">✖ Törlés</button>
                                 </div>
                                 <% }); %>
@@ -281,6 +281,73 @@
                 }
             } catch (e) {
                 alert("Hálózati hiba történt az áthelyezés során!");
+            }
+        }
+
+        // --- 1. ÚJ PIPETTA HOZZÁADÁSA ---
+        async function mentUjPipettat() {
+            const matrica = document.getElementById('uj_matrica').value.trim();
+            if (!matrica) return alert("A matrica szám megadása kötelező!");
+
+            const pontSzam = document.getElementById('uj_pontok').value;
+            const uls = [], inaccs = [], imprecs = [];
+
+            // Begyűjtjük a dinamikus kalibrációs sorok adatait
+            document.querySelectorAll('#dinamikus-mezok-tarolo .calib-row').forEach(row => {
+                const ins = row.querySelectorAll('input');
+                uls.push(ins[0].value); 
+                inaccs.push(ins[1].value); 
+                imprecs.push(ins[2].value);
+            });
+
+            // Összerakjuk az adatcsomagot, amit küldünk a szervernek
+            const adatok = {
+                munka_id: athelyezendoMunkaId, // Ez már megvan a fájlodban: <%= munka.id %>
+                matrica: matrica,
+                pontok: pontSzam,
+                gyarto: document.getElementById('uj_gyarto').value,
+                tipus: document.getElementById('uj_tipus').value,
+                fajta: "", // Ha kell, később kiegészíthető
+                terfogat: document.getElementById('uj_terfogat').value,
+                gyari_szam: document.getElementById('uj_gyari_szam').value,
+                meresek: { ul: uls, inacc: inaccs, imprec: imprecs }
+            };
+
+            try {
+                const res = await fetch('/api/munka-pipetta-hozzaadas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(adatok)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.location.reload(); // Frissítjük az oldalt, és megjelenik a listában!
+                } else {
+                    alert("Hiba a hozzáadáskor: " + data.error);
+                }
+            } catch (e) {
+                alert("Hálózati hiba történt!");
+            }
+        }
+
+        // --- 2. PIPETTA TÖRLÉSE EBBŐL A MUNKÁBÓL ---
+        async function torolPipettat(pipettaMunkaId) {
+            if (!confirm("Biztosan törlöd ezt a pipettát EBBŐL A MUNKÁBÓL?\n\n(A törzsadatbázisban megmarad, csak innen tűnik el.)")) return;
+
+            try {
+                const res = await fetch(`/api/munka-pipetta-torles/${pipettaMunkaId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.location.reload(); // Frissítjük az oldalt, hogy eltűnjön a listából
+                } else {
+                    alert("Hiba a törlés során: " + data.error);
+                }
+            } catch (e) {
+                alert("Hálózati hiba történt!");
             }
         }
     </script>
