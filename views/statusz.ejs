@@ -301,6 +301,27 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
         }
+        
+      
+        .alert-fail {
+          background: #d16969;
+          color: #571515;
+          padding: 15px 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border: 1px solid #c3e6cb;
+          font-weight: bold;
+        }
+        
+        .alert-success {
+          background: #d4edda;
+          color: #155724;
+          padding: 15px 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border: 1px solid #c3e6cb;
+          font-weight: bold;
+        }
     </style>
 </head>
 
@@ -315,9 +336,15 @@
             <a href="/logout" class="logout-btn">Kijelentkezés</a>
         </div>
     </div>
-
+    
     <div class="container">
-        <div class="card">
+        <div id="successMessage" class="alert-success" style="display:none;">
+            ✅ Sikeresen mentve!
+          </div>
+        <div id="failMessage" class="alert-fail" style="display:none;">
+            ❌ A művelet sikertelen!
+          </div>
+          <div class="card">
             <div class="header-section">
                 <div class="header-info">
                     <h2>Munka: <%= munka.azonosito %>
@@ -325,6 +352,13 @@
                     <p>Ügyfél: <strong>
                             <%= munka.company_name %>
                         </strong></p>
+                     <p>Árajánlat: <strong>
+                            <%= munka.arajanlat%>
+                        </strong></p>
+                    <p>Mérés: <strong>
+                            <%= munka.meres%>
+                        </strong></p>
+
                 </div>
                 <div class="job-notes-area">
                     <label>Általános munka megjegyzés:</label>
@@ -353,7 +387,7 @@
                                 </span>
                                 <span class="pipetta-sub">
                                     <%= p.gyarto %>
-                                        <%= p.tipus %> (<%= p.terfogat %>)
+                                        <%= p.tipus %> (<%= p.terfogat %> &#181L)
 
                                                 <% if (p.gyari_szam && p.gyari_szam.trim() !=='' ) { %>
                                                     | <strong style="color: #555;">
@@ -426,10 +460,12 @@
 
                 const responseData = await res.json();
                 if (responseData.success) {
-                    alert("Sikeresen mentve minden adat!");
-                    window.location.href = '/dashboard';
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 3000);
+                    //window.location.href = '/dashboard';
                 } else {
-                    alert("Hiba történt a mentéskor.");
+                    document.getElementById('failMessage').style.display = 'block';
+                    setTimeout(() => { document.getElementById('failMessage').style.display = 'none'; }, 3000);
                 }
             } catch (e) {
                 console.error(e);

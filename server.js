@@ -190,7 +190,7 @@ app.post("/uj-munka", async (req, res) => {
   
   if (custom_job_id && custom_job_id.trim() !== "") {
     const parts = custom_job_id.split("/");
-    if (parts.length === 2) { job_year = parseInt(parts[0]); job_number = parseInt(parts[1]); }
+    if (parts.length === 2) { job_year = parseInt(parts[0]); job_number = parseInt(parts[1]); } 
   }
 
   try {
@@ -324,6 +324,8 @@ app.get("/statusz/:munka_id", async (req, res) => {
                 s.id AS munka_id, 
                 s.is_sent, 
                 s.notes, -- Ez a fő megjegyzés a sub_job táblából
+                s.arajanlat,
+                s.meres,
                 m.company_name, 
                 m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito
             FROM sub_job s 
@@ -878,8 +880,5 @@ app.post("/api/munka-athelyezes/:id", async (req, res) => {
 // 8. SZERVER INDÍTÁSA
 // =========================================================================
 app.listen(PORT, () => {
-  console.log(`\n=========================================`);
-  console.log(`🚀 A labor szerver sikeresen elindult!`);
-  console.log(`🌐 Elérhető itt: http://localhost:${PORT}`);
-  console.log(`=========================================\n`);
-});
+  console.log(`Az ütemterv elérhető itt: http://localhost:${PORT}`);
+});  
