@@ -303,24 +303,35 @@
         }
         
       
-        .alert-fail {
-          background: #d16969;
-          color: #571515;
-          padding: 15px 20px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          border: 1px solid #c3e6cb;
-          font-weight: bold;
+        .alert-fail, .alert-success {
+            position: fixed;
+            top: -100px; 
+            left: 50%;
+            transform: translateX(-50%); 
+            z-index: 9999; 
+            transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        
+
+        .alert-fail {
+            background: #d16969;
+            color: #571515;
+            border: 1px solid #a34848; 
+        }
+
         .alert-success {
-          background: #d4edda;
-          color: #155724;
-          padding: 15px 20px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          border: 1px solid #c3e6cb;
-          font-weight: bold;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .show-toast {
+            top: 20px !important; /* Becsúszik 20 pixelre a képernyő tetejétől */
         }
     </style>
 </head>
@@ -338,13 +349,14 @@
     </div>
     
     <div class="container">
-        <div id="successMessage" class="alert-success" style="display:none;">
+       <div class="container">
+        <div id="successMessage" class="alert-success">
             ✅ Sikeresen mentve!
           </div>
-        <div id="failMessage" class="alert-fail" style="display:none;">
+        <div id="failMessage" class="alert-fail">
             ❌ A művelet sikertelen!
           </div>
-          <div class="card">
+        <div class="card">
             <div class="header-section">
                 <div class="header-info">
                     <h2>Munka: <%= munka.azonosito %>
@@ -387,13 +399,15 @@
                                 </span>
                                 <span class="pipetta-sub">
                                     <%= p.gyarto %>
-                                        <%= p.tipus %> (<%= p.terfogat %> &#181L)
+                                        <%= p.tipus %>   <%= p.terfogat %> &#181L
 
                                                 <% if (p.gyari_szam && p.gyari_szam.trim() !=='' ) { %>
-                                                    | <strong style="color: #555;">
-                                                        <%= p.gyari_szam %>
-                                                    </strong>
-                                                    <% } %>
+                                                    <p1>
+                                                      <strong style="color: #555;">
+                                                          <%= p.gyari_szam %>
+                                                      </strong>
+                                                      <% } %>
+                                                    </p1>
                                 </span>
                             </td>
                             <td align="center">
@@ -460,17 +474,31 @@
 
                 const responseData = await res.json();
                 if (responseData.success) {
-                    document.getElementById('successMessage').style.display = 'block';
-                    setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 3000);
-                    //window.location.href = '/dashboard';
+                  mutasErtesitest('siker');
                 } else {
-                    document.getElementById('failMessage').style.display = 'block';
-                    setTimeout(() => { document.getElementById('failMessage').style.display = 'none'; }, 3000);
-                }
+                   mutasErtesitest('hiba');                }
             } catch (e) {
                 console.error(e);
                 alert("Hálózati hiba!");
             }
+        }
+
+        function mutasErtesitest(tipus) {
+            const successBox = document.getElementById('successMessage');
+            const failBox = document.getElementById('failMessage');
+
+            successBox.classList.remove('show-toast');
+            failBox.classList.remove('show-toast');
+
+            const aktivDoboz = (tipus === 'siker') ? successBox : failBox;
+
+            setTimeout(() => {
+                aktivDoboz.classList.add('show-toast'); 
+                
+                setTimeout(() => {
+                    aktivDoboz.classList.remove('show-toast');
+                }, 3500);
+            }, 50);
         }
     </script>
 </body>

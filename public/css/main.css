@@ -682,6 +682,39 @@ tr:hover {
 }
 
 
+.alert-fail, .alert-success {
+    position: fixed;
+    top: -100px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    z-index: 9999; 
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 250px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.alert-fail {
+    background: #d16969;
+    color: #571515;
+    border: 1px solid #a34848; 
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.show-toast {
+    top: 20px !important; /* Becsúszik 20 pixelre a képernyő tetejétől */
+}
+
+
+
 .header-card {
     background: white;
     padding: 25px;

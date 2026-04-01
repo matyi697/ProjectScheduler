@@ -21,7 +21,12 @@
     </div>
 
     <div class="container-dashboard" id="munka-nezet">
-        <div id="mentes-visszajelzes" style="color: var(--success);"></div>
+        <div id="successMessage" class="alert-success">
+            ✅ A munka sikeresen mentve!
+          </div>
+        <div id="failMessage" class="alert-fail">
+            ❌ A művelet sikertelen!
+          </div>
 
         <div class="form-group">
             <label>Válasszon főcsomagot a parcellázáshoz:</label>
@@ -453,12 +458,12 @@
 
                 if (resp.success) {
                     const visszajelzo = document.getElementById('mentes-visszajelzes');
-                    visszajelzo.innerText = "✓ Az előző munka sikeresen mentve!";
+                    mutasErtesitest('siker');      
                     felvettPipettak = []; frissitPipettaListat();
                     document.getElementById('notes').value = '';
-                    setTimeout(() => { visszajelzo.innerText = ""; }, 3000);
                 } else {
                     alert("Hiba a mentés során: " + (resp.error || "Ismeretlen hiba"));
+                    mutasErtesitest('hiba');
                 }
             } catch (e) { console.error(e); alert("Hálózati hiba történt a mentéskor."); }
         }
@@ -473,6 +478,25 @@
                 else alert("Hiba történt a lezárás során.");
             } catch (e) { console.error(e); alert("Hálózati hiba!"); }
         }
+
+        function mutasErtesitest(tipus) {
+            const successBox = document.getElementById('successMessage');
+            const failBox = document.getElementById('failMessage');
+
+            successBox.classList.remove('show-toast');
+            failBox.classList.remove('show-toast');
+
+            const aktivDoboz = (tipus === 'siker') ? successBox : failBox;
+
+            setTimeout(() => {
+                aktivDoboz.classList.add('show-toast'); 
+                
+                setTimeout(() => {
+                    aktivDoboz.classList.remove('show-toast');
+                }, 3500);
+            }, 50);
+        }
+
     </script>
 </body>
 
