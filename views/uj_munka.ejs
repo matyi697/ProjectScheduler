@@ -360,8 +360,7 @@
             </div>
         </form>
     </div>
-
-    <script>
+  <script>
         function copyAddress() {
             document.getElementById('b_country').value = document.getElementById('s_country').value;
             document.getElementById('b_zip').value = document.getElementById('s_zip').value;
@@ -373,8 +372,63 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('arrival_date').value = today;
         }
-    </script>
 
-</body>
+        // --- GOLYÓÁLLÓ FORM BEKÜLDÉS ---
+        document.getElementById('ujCsomagForm').addEventListener('submit', async function(event) {
+            // 1. Azonnal megfogjuk a gombnyomást, hogy ne frissüljön az oldal
+            event.preventDefault(); 
+
+            const form = this;
+            const customIdInput = document.getElementById('custom_job_id');
+            const rawId = customIdInput.value.trim();
+
+            // Ha beírt a felhasználó valamit:
+            if (rawId) {
+                // A) FORMAI ELLENŐRZÉS
+                const parts = rawId.split('/');
+                if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+                    const hasznaljonAutot = confirm("❌ A megadott csomagszám formátuma hibás!\n(Helyes formátum pl: 2026/15)\n\nSzeretnéd törölni ezt a mezőt, és a rendszerre bízni az automatikus sorszámozást?");
+                    if (hasznaljonAutot) {
+                        customIdInput.value = ''; 
+                        form.submit(); 
+                    } else {
+                        customIdInput.focus();
+                    }
+                    return; // KILÉPÉS, NEM megyünk tovább!
+                }
+
+                // B) ADATBÁZIS ELLENŐRZÉS
+                try {
+                    const res = await fetch(`/api/csomag-ellenorzes/${encodeURIComponent(rawId)}`);
+                    const data = await res.json();
+
+                    if (data.letezik) {
+                        const hasznaljonAutot = confirm(`⚠️ VIGYÁZAT!\n\nA(z) ${rawId} csomagszám már FOGLALT!\n\nSzeretnéd törölni ezt a mezőt, és a rendszerre bízni az automatikus sorszámozást?`);
+                        if (hasznaljonAutot) {
+                            customIdInput.value = ''; // Kiürítjük, jöhet a trigger!
+                            form.submit(); // Beküldjük
+                        } else {
+                            customIdInput.focus();
+                        }
+                        return; // KILÉPÉS, NEM megyünk tovább!
+                    }
+                    
+                    // Ha ide eljutott, az azt jelenti, hogy a kód formailag jó ÉS szabad is!
+                    form.submit();
+                    return;
+
+                } catch (e) {
+                    console.error("Hálózat/API hiba:", e);
+                    alert("Szerver hiba! Nem tudtuk ellenőrizni, hogy szabad-e a sorszám. Próbáld újra!");
+                    return; // KILÉPÉS (Ez hiányzott múltkor! Így most nem engedi át a hibásat.)
+                }
+            } 
+            
+            // C) HA ÜRES VOLT A MEZŐ (Automatikus generálást akar)
+            else {
+                form.submit();
+            }
+        });
+    </script>  </body>
 
 </html>

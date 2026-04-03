@@ -85,93 +85,143 @@ app.get("/logout", (req, res) => {
 // =========================================================================
 // 4. DASHBOARD ÉS MUNKÁK (VÉDETT OLDALAK)
 // =========================================================================
-
 app.get("/dashboard", async (req, res) => {
-    // 1. Ellenőrizzük, hogy be van-e jelentkezve a felhasználó
-    if (!req.session.userId) {
-        return res.redirect("/");
-    }
+    if (!req.session.userId) return res.redirect("/");
+
+    // 1. URL paraméterek
+    const searchQuery = req.query.q || ''; 
+    const showArchived = req.query.archived === 'true'; 
+    const activeTab = req.query.tab || 'munka-tab'; 
+    
+    const limit = 15; 
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * limit;
 
     try {
-        // ==========================================
-        // 1. LEKÉRDEZÉS: CSOMAGOK
-        // ==========================================
-        const packagesResult = await poolUtemterv.query(`
-            SELECT 
-                m.id, 
-                m.job_year || '/' || m.job_number AS azonosito, 
-                m.company_name, 
-                TO_CHAR(m.arrival_date, 'YYYY. MM. DD.') AS datum,
-                TO_CHAR(m.due_date, 'YYYY. MM. DD.') AS hatarido,
-                m.is_closed,
-                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = m.id) AS al_munkak_szama,
-                
-                -- ÚJ LOGIKA: Egy munka (parcella) akkor van kész a csomagon belül, 
-                -- ha van benne pipetta, és az ÖSSZES pipettának minden pipája be van húzva!
-                (SELECT COUNT(*) FROM sub_job sj 
-                 WHERE sj.main_job_id = m.id 
-                 AND (SELECT COUNT(*) FROM pipetta_munka pm WHERE pm.sub_job_id = sj.id) > 0
-                 AND (SELECT COUNT(*) FROM pipetta_munka pm WHERE pm.sub_job_id = sj.id) = 
-                     (SELECT COUNT(*) FROM pipetta_munka pm 
-                      WHERE pm.sub_job_id = sj.id 
-                      -- IDE ÍRD AZOKAT A PIPÁKAT, AMIKET JELENLEG HASZNÁLTOK:
-                      AND is_cleaned = true 
-                      AND is_maintained = true 
-                      AND is_serviced = true 
-                      AND is_calibrated = true)
-                ) AS kesz_munkak_szama
+        // =========================================
+        // A) CSOMAGOK LEKÉRDEZÉSE
+        // =========================================
+        // JAVÍTÁS 1: IS NOT TRUE használata, hogy a NULL értékek se tűnjenek el!
+        let pkgSearchSql = showArchived ? 'WHERE is_closed = TRUE' : 'WHERE is_closed IS NOT TRUE';
+        let pkgParams = [];
+        
+        // JAVÍTÁS 2: "Google-okos" több-szavas kereső
+        if (searchQuery) {
+            const words = searchQuery.trim().split(/\s+/);
+            words.forEach(word => {
+                pkgParams.push(`%${word}%`);
+                const idx = pkgParams.length;
+                pkgSearchSql += ` AND (
+                    company_name ILIKE $${idx} OR 
+                    (job_year::text || '/' || job_number::text) ILIKE $${idx} OR
+                    shipping_city ILIKE $${idx} OR 
+                    billing_city ILIKE $${idx}
+                )`;
+            });
+        }
 
-            FROM main_job m
-            ORDER BY m.is_closed ASC, m.id DESC
-        `);
+        const countRes = await poolUtemterv.query(`SELECT COUNT(*) FROM main_job ${pkgSearchSql}`, pkgParams);
+        const totalItems = parseInt(countRes.rows[0].count);
+        const totalPages = Math.ceil(totalItems / limit) || 1;
 
-        // ==========================================
-        // 2. LEKÉRDEZÉS: MUNKÁK (Parcellák)
-        // ==========================================
-        const jobsResult = await poolUtemterv.query(`
+        const limitOffsetIndexPkg = pkgParams.length + 1;
+        const dataParamsPkg = [...pkgParams, limit, offset];
+
+        const packagesRes = await poolUtemterv.query(`
             SELECT 
-                s.id AS munka_id, 
-                m.job_year || '/' || m.job_number || '/' || s.sub_number AS azonosito, 
-                m.company_name, 
-                TO_CHAR(s.arrival_date, 'YYYY. MM. DD.') AS datum,
-                TO_CHAR(s.due_date, 'YYYY. MM. DD.') AS hatarido, -- ÚJ: Határidő lekérése!
-                s.is_sent,
+                id, is_closed, company_name, 
+                (job_year || '/' || job_number) AS azonosito,
+                TO_CHAR(arrival_date, 'YYYY.MM.DD') AS datum,
+                TO_CHAR(due_date, 'YYYY.MM.DD') AS hatarido,
+                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = main_job.id) AS al_munkak_szama,
+                (SELECT COUNT(*) FROM sub_job WHERE main_job_id = main_job.id AND is_sent = TRUE) AS kesz_munkak_szama
+            FROM main_job 
+            ${pkgSearchSql}
+            ORDER BY id DESC 
+            LIMIT $${limitOffsetIndexPkg} OFFSET $${limitOffsetIndexPkg + 1}
+        `, dataParamsPkg);
+
+
+        // =========================================
+        // B) MUNKÁK (SUB_JOB) LEKÉRDEZÉSE
+        // =========================================
+        let jobSearchSql = showArchived ? 'WHERE s.is_sent = TRUE' : 'WHERE s.is_sent IS NOT TRUE';
+        let jobParams = [];
+        
+        if (searchQuery) {
+            const words = searchQuery.trim().split(/\s+/);
+            words.forEach(word => {
+                jobParams.push(`%${word}%`);
+                const idx = jobParams.length;
+                jobSearchSql += ` AND (
+                    m.company_name ILIKE $${idx} OR 
+                    (m.job_year::text || '/' || m.job_number::text || '/' || s.sub_number::text) ILIKE $${idx} OR
+                    m.shipping_city ILIKE $${idx} OR 
+                    m.billing_city ILIKE $${idx}
+                )`;
+            });
+        }
+
+        const jobsRes = await poolUtemterv.query(`
+            SELECT 
+                s.id AS munka_id, s.is_sent,
+                m.company_name,
+                (m.job_year || '/' || m.job_number || '/' || s.sub_number) AS azonosito,
+                TO_CHAR(s.due_date, 'YYYY.MM.DD') AS hatarido,
                 (SELECT COUNT(*) FROM pipetta_munka WHERE sub_job_id = s.id) AS osszes_pipetta,
-                
-                (SELECT COUNT(*) FROM pipetta_munka 
-                 WHERE sub_job_id = s.id 
-                 -- Itt figyelj rá, hogy a ti aktuális checkboxaitok legyenek!
-                 AND is_cleaned = true 
-                 AND is_calibrated = true
-                ) AS kesz_pipetta
-
+                (SELECT COUNT(*) FROM pipetta_munka WHERE sub_job_id = s.id AND is_calibrated = TRUE) AS kesz_pipetta
             FROM sub_job s
             JOIN main_job m ON s.main_job_id = m.id
-            ORDER BY s.is_sent ASC, s.id DESC
-        `);
+            ${jobSearchSql}
+            ORDER BY s.id DESC
+            LIMIT 50 
+        `, jobParams);
 
-        // ==========================================
-        // 3. ÚJ LEKÉRDEZÉS: ÖSSZES PIPETTA (A 3. fülhöz)
-        // ==========================================
-        const pipettakResult = await poolUtemterv.query(`
-            SELECT matrica_szam, gyarto, tipus, fajta, terfogat, gyari_szam
-            FROM pipetta_torzs
-            ORDER BY matrica_szam ASC
-        `);
 
-        // ==========================================
-        // ADATOK ÁTADÁSA AZ EJS FÁJLNAK
-        // ==========================================
+        // =========================================
+        // C) PIPETTA TÖRZSDATBÁZIS
+        // =========================================
+        let pipSearchSql = 'WHERE 1=1';
+        let pipParams = [];
+        
+        if (searchQuery) {
+            const words = searchQuery.trim().split(/\s+/);
+            words.forEach(word => {
+                pipParams.push(`%${word}%`);
+                const idx = pipParams.length;
+                pipSearchSql += ` AND (
+                    matrica_szam ILIKE $${idx} OR 
+                    gyarto ILIKE $${idx} OR 
+                    tipus ILIKE $${idx} OR 
+                    fajta ILIKE $${idx} OR 
+                    gyari_szam ILIKE $${idx}
+                )`;
+            });
+        }
+
+        const pipettakRes = await poolUtemterv.query(`
+            SELECT * FROM pipetta_torzs 
+            ${pipSearchSql}
+            ORDER BY matrica_szam DESC 
+            LIMIT 50 
+        `, pipParams);
+
+        // 4. Adatok küldése az EJS sablonnak
         res.render("dashboard", {
             username: req.session.username,
-            packages: packagesResult.rows,
-            jobs: jobsResult.rows,
-            allPipettak: pipettakResult.rows  // <-- Ez tölti fel a pipetták táblázatot!
+            packages: packagesRes.rows,   
+            jobs: jobsRes.rows,           
+            allPipettak: pipettakRes.rows, 
+            searchQuery: searchQuery,
+            showArchived: showArchived,
+            currentPage: page,
+            totalPages: totalPages,
+            activeTab: activeTab
         });
 
     } catch (err) {
-        console.error("Hiba a dashboard betöltésekor:", err);
-        res.status(500).send("Szerverhiba történt az adatok lekérdezésekor.");
+        console.error("Dashboard betöltési hiba:", err);
+        res.status(500).send("Hiba történt az adatok lekérésekor.");
     }
 });
 
@@ -188,9 +238,13 @@ app.post("/uj-munka", async (req, res) => {
   due_date = due_date ? due_date : null;
   let job_year = null, job_number = null;
   
+  // Ha a felhasználó beírt egyedi azonosítót, szétvágjuk
   if (custom_job_id && custom_job_id.trim() !== "") {
     const parts = custom_job_id.split("/");
-    if (parts.length === 2) { job_year = parseInt(parts[0]); job_number = parseInt(parts[1]); } 
+    if (parts.length === 2) { 
+        job_year = parseInt(parts[0]); 
+        job_number = parseInt(parts[1]); 
+    } 
   }
 
   try {
@@ -199,14 +253,57 @@ app.post("/uj-munka", async (req, res) => {
             (job_year, job_number, company_name, contact_name, courier_info, arrival_date, due_date, notes, item_count,
              billing_country, billing_zip, billing_city, billing_street, shipping_country, shipping_zip, shipping_city, shipping_street) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
-      [job_year, job_number, company_name, contact_name, courier_info, arrival_date, due_date, notes, item_count, billing_country, billing_zip, billing_city, billing_street, shipping_country, shipping_zip, shipping_city, shipping_street]
+      [job_year, job_number, company_name, contact_name, courier_info, arrival_date, due_date, notes, item_count || 1, billing_country, billing_zip, billing_city, billing_street, shipping_country, shipping_zip, shipping_city, shipping_street]
     );
     res.redirect("/dashboard?success=1");
+
   } catch (err) {
-    console.error(err); res.send("Adatbázis hiba!");
+    console.error("Mentési hiba:", err); 
+
+    // A 23505 a PostgreSQL hibakódja a UNIQUE (egyedi azonosító) ütközésre!
+    if (err.code === '23505') {
+        // Visszadobjuk az előző oldalra egy hibaüzenettel
+        return res.send(`
+            <script>
+                alert("❌ HIBA: Ez a csomagszám már foglalt az adatbázisban! Kérlek, adj meg egy másikat, vagy hagyd üresen az automatikushoz.");
+                window.history.back(); // Visszaviszi az űrlapra, így nem vesznek el a beírt adatai!
+            </script>
+        `);
+    }
+
+    // Minden más adatbázis hiba esetén
+    res.send("Kritikus adatbázis hiba történt a mentés során!");
   }
 });
+// ==============================================================
+// CSOMAGSZÁM ELLENŐRZÉSE (Foglalt-e már?) - PERJEL BIZTOS VERZIÓ
+// ==============================================================
+app.get("/api/csomag-ellenorzes", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ letezik: false });
 
+    try {
+        // Most már nem a params-ból, hanem a query-ből vesszük!
+        const rawId = req.query.id; 
+        if (!rawId) return res.json({ letezik: false });
+
+        const parts = rawId.split('/'); 
+        if (parts.length !== 2) return res.json({ letezik: false }); 
+
+        const year = parseInt(parts[0]);
+        const number = parseInt(parts[1]);
+
+        const check = await poolUtemterv.query(
+            'SELECT id FROM main_job WHERE job_year = $1 AND job_number = $2', 
+            [year, number]
+        );
+
+        res.json({ letezik: check.rows.length > 0 }); 
+
+    } catch (err) {
+        console.error("Hiba a csomagszám ellenőrzéskor:", err);
+        res.status(500).json({ letezik: false });
+    }
+});
 // =========================================================================
 // 5. PARCELLÁZÁS ÉS PIPETTA MENTÉS
 // =========================================================================
@@ -873,6 +970,37 @@ app.post("/api/munka-athelyezes/:id", async (req, res) => {
         await poolUtemterv.query('ROLLBACK');
         console.error("Hiba az áthelyezéskor:", err);
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ==============================================================
+// KÖVETKEZŐ SZABAD MATRICA SZÁM (6 jegyű, nullákkal) - JAVÍTOTT
+// ==============================================================
+app.get("/api/kovetkezo-matrica", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ next: '000001' });
+
+    try {
+        // A MAX() megkeresi a legnagyobb számot, a TRIM() pedig levágja a láthatatlan szóközöket
+        const result = await poolUtemterv.query(`
+            SELECT MAX(CAST(TRIM(matrica_szam) AS INTEGER)) AS max_szam 
+            FROM pipetta_torzs 
+            WHERE TRIM(matrica_szam) ~ '^[0-9]+$'
+        `);
+        
+        let nextNum = 1;
+        // Ha talált találatot és az nem NULL
+        if (result.rows.length > 0 && result.rows[0].max_szam !== null) {
+            nextNum = parseInt(result.rows[0].max_szam, 10) + 1;
+        }
+        
+        // 6 karakter hosszúra formázzuk, nullákkal kitöltve az elejét (pl. 000101)
+        const nextMatrica = String(nextNum).padStart(6, '0');
+        res.json({ next: nextMatrica });
+
+    } catch (err) {
+        console.error("Hiba a matrica generáláskor:", err);
+        // Csak akkor adja ezt, ha tényleg leszakad az adatbázis
+        res.json({ next: '000001' }); 
     }
 });
 

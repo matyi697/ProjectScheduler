@@ -38,26 +38,32 @@
             </div>
         </div>
 
-        <div class="toolbar">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Keresés cég, azonosító vagy matrica alapján..." onkeyup="filterTables()">
+        <form action="/dashboard" method="GET" class="toolbar" id="searchForm" style="display: flex; gap: 15px; align-items: center;">
+            <input type="hidden" name="tab" id="formTab" value="<%= typeof activeTab !== 'undefined' ? activeTab : 'munka-tab' %>">
+            
+            <div class="search-box" style="flex: 1; display: flex; gap: 10px;">
+                <input type="text" name="q" value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" 
+                       placeholder="🔍 Keresés cég, azonosító vagy város alapján..." 
+                       style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ccc;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 6px;">Keresés</button>
             </div>
             <div class="filter-box">
-                <label>
-                    <input type="checkbox" id="showArchived" onchange="toggleArchived()"> 
+                <label style="cursor: pointer; font-weight: bold; color: var(--gray);">
+                    <input type="checkbox" name="archived" value="true" 
+                           <%= (typeof showArchived !== 'undefined' && showArchived) ? 'checked' : '' %> 
+                           onchange="document.getElementById('searchForm').submit();"> 
                     🗄️ Kész/Archivált mutatása
                 </label>
             </div>
-        </div>
-
+        </form>
         <div class="tab-container">
-            <button class="tab-btn active" onclick="switchTab('munka-tab', this)">🛠 Munkák</button>
-            <button class="tab-btn" onclick="switchTab('csomag-tab', this)">📦 Csomagok</button>
-            <button class="tab-btn" onclick="switchTab('pipetta-tab', this)">🧪 Pipetták</button>
+            <button class="tab-btn <%= (typeof activeTab === 'undefined' || activeTab === 'munka-tab') ? 'active' : '' %>" onclick="switchTab('munka-tab', this)">🛠 Munkák</button>
+            <button class="tab-btn <%= (typeof activeTab !== 'undefined' && activeTab === 'csomag-tab') ? 'active' : '' %>" onclick="switchTab('csomag-tab', this)">📦 Csomagok</button>
+            <button class="tab-btn <%= (typeof activeTab !== 'undefined' && activeTab === 'pipetta-tab') ? 'active' : '' %>" onclick="switchTab('pipetta-tab', this)">🧪 Pipetták</button>
         </div>
-
-        <div id="munka-tab" class="card">
-            <table id="munkaTable">
+    
+            <div id="munka-tab" class="card <%= (typeof activeTab !== 'undefined' && activeTab !== 'munka-tab') ? 'hidden' : '' %>">
+              <table id="munkaTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable('munkaTable', 0)">Munka ID</th>
@@ -69,8 +75,7 @@
                 </thead>
                 <tbody>
                     <% jobs.forEach(function(job) { %>
-                        <tr class="<%= job.is_sent ? 'archived-row' : '' %>"
-                            style="<%= job.is_sent ? 'display: none;' : '' %>">
+                        <tr class="<%= job.is_sent ? 'archived-row' : '' %>">
                             <td><strong>
                                     <%= job.azonosito %>
                                 </strong></td>
@@ -107,8 +112,8 @@
             </table>
         </div>
 
-        <div id="csomag-tab" class="card hidden">
-            <table id="csomagTable">
+        <div id="csomag-tab" class="card <%= (typeof activeTab !== 'undefined' && activeTab === 'csomag-tab') ? '' : 'hidden' %>">
+              <table id="csomagTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable('csomagTable', 0)">Csomagszám</th>
@@ -122,7 +127,7 @@
                 </thead>
                 <tbody>
                     <% packages.forEach(function(pkg) { %>
-                        <tr class="<%= pkg.is_closed ? 'archived-row' : '' %>" style="<%= pkg.is_closed ? 'display: none;' : '' %>">
+                        <tr class="<%= pkg.is_closed ? 'archived-row' : '' %>">
                             <td><strong><%= pkg.azonosito %></strong></td>
                             <td><%= pkg.company_name %></td>
                             <td><%= pkg.datum %></td>
@@ -158,8 +163,8 @@
             </table>
         </div>
 
-        <div id="pipetta-tab" class="card hidden">
-            <table id="pipettaTable">
+        <div id="pipetta-tab" class="card <%= (typeof activeTab !== 'undefined' && activeTab === 'pipetta-tab') ? '' : 'hidden' %>">
+              <table id="pipettaTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable('pipettaTable', 0)">Matrica Szám</th>
@@ -194,8 +199,37 @@
         </div>
 
     </div>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px; padding: 20px 0; border-top: 1px solid #eee;">
+            
+        <% if (typeof currentPage !== 'undefined' && currentPage > 1) { %>
+            <a href="/dashboard?page=<%= currentPage - 1 %>&q=<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>&archived=<%= (typeof showArchived !== 'undefined' && showArchived) ? 'true' : 'false' %>&tab=<%= typeof activeTab !== 'undefined' ? activeTab : 'munka-tab' %>" 
+               class="btn" style="padding: 8px 16px; background: #fff; border: 1px solid #ccc; border-radius: 6px; text-decoration: none; color: #333; font-weight: bold;">
+                ⬅ Előző
+            </a>
+        <% } else { %>
+            <span style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; color: #aaa; font-weight: bold; cursor: not-allowed;">
+                ⬅ Előző
+            </span>
+        <% } %>
 
-    <script>
+        <div style="font-size: 15px; font-weight: bold; color: var(--primary);">
+            Oldal: <%= typeof currentPage !== 'undefined' ? currentPage : 1 %> / <%= typeof totalPages !== 'undefined' ? totalPages : 1 %>
+        </div>
+
+        <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined' && currentPage < totalPages) { %>
+            <a href="/dashboard?page=<%= currentPage + 1 %>&q=<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>&archived=<%= (typeof showArchived !== 'undefined' && showArchived) ? 'true' : 'false' %>&tab=<%= typeof activeTab !== 'undefined' ? activeTab : 'munka-tab' %>" 
+               class="btn btn-primary" style="padding: 8px 16px; border-radius: 6px; text-decoration: none; color: white; font-weight: bold;">
+                Következő ➔
+            </a>
+        <% } else { %>
+            <span style="padding: 8px 16px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; color: #aaa; font-weight: bold; cursor: not-allowed;">
+                Következő ➔
+            </span>
+        <% } %>
+
+    </div>
+
+<script>
         // Tab váltó
         function switchTab(tabId, btn) {
             document.getElementById('munka-tab').classList.add('hidden');
@@ -206,44 +240,10 @@
 
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-        }
 
-        // Archívum kapcsoló
-        function toggleArchived() {
-            filterTables();
-        }
-
-        // Kereső és Archívum szűrő
-        function filterTables() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let showArchived = document.getElementById("showArchived").checked;
-
-            let tables = [
-                document.getElementById("munkaTable"),
-                document.getElementById("csomagTable"),
-                document.getElementById("pipettaTable")
-            ];
-
-            tables.forEach(table => {
-                if (!table) return;
-                let tr = table.getElementsByTagName("tr");
-
-                for (let i = 1; i < tr.length; i++) {
-                    let isArchived = tr[i].classList.contains('archived-row');
-
-                    if (isArchived && !showArchived) {
-                        tr[i].style.display = "none";
-                        continue;
-                    }
-
-                    let textContent = tr[i].textContent || tr[i].innerText;
-                    if (textContent.toLowerCase().indexOf(input) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }
-            });
+            // Beírjuk a rejtett mezőbe a kiválasztott fület, így keresésnél ezt küldi el a szervernek!
+            const formTab = document.getElementById('formTab');
+            if(formTab) formTab.value = tabId;
         }
 
         // Oszlop-rendező

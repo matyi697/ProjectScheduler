@@ -138,11 +138,11 @@
             <div>
                 <div class="fieldset-box">
                     <div class="fieldset-title-parcell">Azonosítás és Pontok</div>
-                    <div class="form-group">
-                        <label>Matrica szám:</label>
-                        <input type="text" class="form-control" id="matrica_szam" placeholder="Például: PC12345"
-                            style="border-color: var(--accent); border-width: 2px;">
-                    </div>
+                      <div class="form-group">
+                        <label style="color: var(--danger); font-weight: bold;">⚠️ Matrica szám (Hagyd üresen az automatikushoz!):</label>
+                          <input type="text" class="form-control" id="matrica_szam" 
+                            style="border-color: var(--danger); border-width: 2px; font-weight: bold; font-size: 16px;">
+                      </div>
                     <div class="form-group">
                         <label>Kalibrációs pontok száma (1-10):</label>
                         <input type="number" id="kalibracios_pontok" class="form-control" value="1" min="1" max="10"
@@ -240,14 +240,38 @@
         let felvettPipettak = [];
         let szerkesztesAlattAllIndex = null;
 
+        // --- ÚJ: Lekéri a következő szabad számot (és ellenőrzi a lokális listát is!) ---
+        async function getKovetkezoSzabadMatrica() {
+            let dbNext = '000001';
+            try {
+                const res = await fetch('/api/kovetkezo-matrica');
+                const data = await res.json();
+                dbNext = data.next;
+            } catch(e) {}
+            
+            let nextNum = parseInt(dbNext, 10);
+            
+            // Megnézzük, hogy az épp felvett (de még nem mentett) pipetták között van-e már ilyen
+            let utkozes = true;
+            while(utkozes) {
+                let tesztMatrica = String(nextNum).padStart(6, '0');
+                if (felvettPipettak.some(p => p.matrica === tesztMatrica)) {
+                    nextNum++; // Ha igen, növeljük egyel
+                } else {
+                    return tesztMatrica; // Ha szabad, visszaadjuk
+                }
+            }
+        }
+
         // 1. NÉZETEK VÁLTÁSA ÉS GOMB FELIRAT
-        function toggleNezet(nezet) {
+        async function toggleNezet(nezet) {
             if (nezet === 'pipetta') {
                 document.getElementById('munka-nezet').classList.add('hidden');
                 document.getElementById('pipetta-nezet').classList.remove('hidden');
 
                 const gomb = document.getElementById('btn-pipetta-mentes');
                 const cim = document.getElementById('pipetta-cim');
+                const matricaInput = document.getElementById('matrica_szam');
 
                 if (szerkesztesAlattAllIndex !== null) {
                     gomb.innerText = "✔ Módosítás mentése";
@@ -255,9 +279,14 @@
                 } else {
                     gomb.innerText = "✔ Mentés a listába";
                     cim.innerText = "➕ Új pipetta hozzáadása";
+                    
+                    // --- ÚJ: Lekérjük a következőt, és kiírjuk a placeholderbe ---
+                    matricaInput.placeholder = "Töltés...";
+                    const nextMatrica = await getKovetkezoSzabadMatrica();
+                    matricaInput.placeholder = `Hagyd üresen! (Következő: ${nextMatrica})`;
                 }
 
-                setTimeout(() => document.getElementById('matrica_szam').focus(), 100);
+                setTimeout(() => matricaInput.focus(), 100);
             } else {
                 document.getElementById('pipetta-nezet').classList.add('hidden');
                 document.getElementById('munka-nezet').classList.remove('hidden');
@@ -266,7 +295,7 @@
 
         // 2. DINAMIKUS MEZŐK GENERÁLÁSA
         function generalSorokat() {
-            if (szerkesztesAlattAllIndex !== null) return; // Szerkesztésnél ne törölje ki, ha véletlen belekattint
+            if (szerkesztesAlattAllIndex !== null) return; 
             let darab = parseInt(document.getElementById('kalibracios_pontok').value) || 1;
             const tarolo = document.getElementById('dinamikus-mezok-tarolo');
             tarolo.innerHTML = '';
@@ -283,7 +312,7 @@
         // 3. MATRICA AUTOFILL
         document.getElementById('matrica_szam').addEventListener('blur', async function () {
             const matrica = this.value.trim();
-            if (!matrica || szerkesztesAlattAllIndex !== null) return; // Szerkesztésnél ne keressen rá újra
+            if (!matrica || szerkesztesAlattAllIndex !== null) return; 
             try {
                 const res = await fetch('/api/pipetta/' + matrica);
                 const data = await res.json();
@@ -354,10 +383,14 @@
             toggleNezet('pipetta');
         }
 
-        // 6. PIPETTA MENTÉSE
-        function pipettaMenteseListaba() {
-            const matrica = document.getElementById('matrica_szam').value;
-            if (!matrica) return alert("Matrica szám kötelező!");
+        // 6. PIPETTA MENTÉSE (Async lett az auto-matrica miatt!)
+        async function pipettaMenteseListaba() {
+            let matrica = document.getElementById('matrica_szam').value.trim();
+            
+            // --- ÚJ: Ha üresen hagyta, generálunk egyet mentéskor! ---
+            if (!matrica) {
+                matrica = await getKovetkezoSzabadMatrica();
+            }
 
             const pontSzam = document.getElementById('kalibracios_pontok').value;
             const uls = [], inaccs = [], imprecs = [];
@@ -390,19 +423,16 @@
 
         function megsemPipettaBase() {
             document.getElementById('matrica_szam').value = '';
-            document.getElementById('kalibracios_pontok').value = 1;
+            // direkt kihagyva: document.getElementById('kalibracios_pontok').value = 1; (Így megjegyzi a korábbit!)
+            
             document.getElementById('torzs_gyarto').value = '';
             document.getElementById('torzs_tipus').value = '';
             document.getElementById('torzs_fajta').value = '';
             document.getElementById('torzs_terfogat').value = '';
             document.getElementById('torzs_gyari_szam').value = '';
 
-            document.getElementById('dinamikus-mezok-tarolo').innerHTML = `
-            <div class="calib-row">
-                <input type="number" step="0.01" class="form-control" placeholder="µL">
-                <input type="number" step="0.01" class="form-control" placeholder="%">
-                <input type="number" step="0.01" class="form-control" placeholder="%">
-            </div>`;
+            // --- ÚJ: Csak a tartalmát töröljük a mezőknek, maguk a sorok MARADNAK! ---
+            document.querySelectorAll('.calib-row input').forEach(inp => inp.value = '');
 
             szerkesztesAlattAllIndex = null;
             toggleNezet('munka');
@@ -458,7 +488,6 @@
                 const resp = await res.json();
 
                 if (resp.success) {
-                    const visszajelzo = document.getElementById('mentes-visszajelzes');
                     mutasErtesitest('siker');      
                     felvettPipettak = []; frissitPipettaListat();
                     document.getElementById('notes').value = '';
@@ -467,17 +496,6 @@
                     mutasErtesitest('hiba');
                 }
             } catch (e) { console.error(e); alert("Hálózati hiba történt a mentéskor."); }
-        }
-
-        async function csomagLezarasa() {
-            const csomagId = document.getElementById('focsomag-select').value;
-            if (!csomagId) return alert("Válassz ki egy csomagot, amit le akarsz zárni!");
-            if (!confirm("Biztosan lezárod a csomagot?")) return;
-            try {
-                const res = await fetch(`/api/csomag-lezarasa/${csomagId}`, { method: 'POST' });
-                if ((await res.json()).success) { alert("Csomag sikeresen lezárva!"); window.location.href = '/dashboard'; }
-                else alert("Hiba történt a lezárás során.");
-            } catch (e) { console.error(e); alert("Hálózati hiba!"); }
         }
 
         function mutasErtesitest(tipus) {
